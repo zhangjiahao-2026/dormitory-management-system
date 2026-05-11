@@ -4,11 +4,11 @@ package com.example.springboot.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.springboot.common.MD5Util;
 import com.example.springboot.entity.DormManager;
 import com.example.springboot.mapper.DormManagerMapper;
 import com.example.springboot.service.DormManagerService;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
 
@@ -29,13 +29,9 @@ public class DormManagerServiceImpl extends ServiceImpl<DormManagerMapper, DormM
     public DormManager dormManagerLogin(String username, String password) {
         QueryWrapper<DormManager> qw = new QueryWrapper<>();
         qw.eq("username", username);
-        qw.eq("password", password);
+        qw.eq("password", MD5Util.md5(password));
         DormManager dormManager = dormManagerMapper.selectOne(qw);
-        if (dormManager != null) {
-            return dormManager;
-        } else {
-            return null;
-        }
+        return dormManager;
     }
 
     /**

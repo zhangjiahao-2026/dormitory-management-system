@@ -5,14 +5,19 @@ import com.example.springboot.common.Result;
 import com.example.springboot.entity.DormManager;
 import com.example.springboot.entity.User;
 import com.example.springboot.service.DormManagerService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/dormManager")
 public class DormManagerController {
+
+    private static final Logger log = LoggerFactory.getLogger(DormManagerController.class);
 
     @Resource
     private DormManagerService dormManagerService;
@@ -75,10 +80,10 @@ public class DormManagerController {
      * 宿管登录
      */
     @PostMapping("/login")
-    public Result<?> login(@RequestBody User user, HttpSession session) {
+    public Result<?> login(@Valid @RequestBody User user, HttpSession session) {
         Object o = dormManagerService.dormManagerLogin(user.getUsername(), user.getPassword());
         if (o != null) {
-            System.out.println(o);
+            log.info("宿管登录成功: {}", user.getUsername());
             //存入session
             session.setAttribute("Identity", "dormManager");
             session.setAttribute("User", o);

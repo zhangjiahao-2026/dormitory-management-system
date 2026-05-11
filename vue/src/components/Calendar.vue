@@ -242,9 +242,9 @@ export default {
       );
 
       if (this.dataArr[oldSelectIndex])
-        this.$set(this.dataArr[oldSelectIndex], "isSelected", false);
+        this.dataArr[oldSelectIndex].isSelected = false;
       if (this.dataArr[newSelectIndex])
-        this.$set(this.dataArr[newSelectIndex], "isSelected", true);
+        this.dataArr[newSelectIndex].isSelected = true;
     },
     // 获取前(后)一个月的年月日信息
     getPreMonth(date, appointDay = 1) {

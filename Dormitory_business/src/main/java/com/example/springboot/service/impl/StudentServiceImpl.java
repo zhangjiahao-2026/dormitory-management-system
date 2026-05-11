@@ -3,6 +3,7 @@ package com.example.springboot.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.springboot.common.MD5Util;
 import com.example.springboot.entity.Student;
 import com.example.springboot.mapper.StudentMapper;
 import com.example.springboot.service.StudentService;
@@ -27,13 +28,9 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     public Student stuLogin(String username, String password) {
         QueryWrapper<Student> qw = new QueryWrapper<>();
         qw.eq("username", username);
-        qw.eq("password", password);
+        qw.eq("password", MD5Util.md5(password));
         Student student = studentMapper.selectOne(qw);
-        if (student != null) {
-            return student;
-        } else {
-            return null;
-        }
+        return student;
     }
 
     /**

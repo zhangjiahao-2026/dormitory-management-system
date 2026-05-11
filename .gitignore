@@ -31,3 +31,11 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Vue ###
+vue/node_modules/
+vue/dist/
+
+### OS ###
+.DS_Store
+Thumbs.db

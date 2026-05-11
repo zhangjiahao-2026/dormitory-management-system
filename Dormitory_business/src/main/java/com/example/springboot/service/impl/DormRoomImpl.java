@@ -12,6 +12,7 @@ import com.example.springboot.service.DormRoomService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Map;
 
 import static com.example.springboot.common.CalPeopleNum.calNum;
 
@@ -104,59 +105,26 @@ public class DormRoomImpl extends ServiceImpl<DormRoomMapper, DormRoom> implemen
     }
 
     /**
-     * 主页 住宿人数
+     * 主页 住宿人数（单条SQL聚合）
      */
     @Override
     public Long selectHaveRoomStuNum() {
-        QueryWrapper<DormRoom> qw1 = new QueryWrapper<>();
-        qw1.isNotNull("first_bed");
-        Long first_bed = dormRoomMapper.selectCount(qw1);
-
-        QueryWrapper<DormRoom> qw2 = new QueryWrapper<>();
-        qw2.isNotNull("second_bed");
-        Long second_bed = dormRoomMapper.selectCount(qw2);
-
-        QueryWrapper<DormRoom> qw3 = new QueryWrapper<>();
-        qw3.isNotNull("third_bed");
-        Long third_bed = dormRoomMapper.selectCount(qw3);
-
-        QueryWrapper<DormRoom> qw4 = new QueryWrapper<>();
-        qw4.isNotNull("fourth_bed");
-        Long fourth_bed = dormRoomMapper.selectCount(qw4);
-
-        Long count = first_bed + second_bed + third_bed + fourth_bed;
-        return count;
+        QueryWrapper<DormRoom> qw = new QueryWrapper<>();
+        qw.select("COUNT(first_bed) + COUNT(second_bed) + COUNT(third_bed) + COUNT(fourth_bed) as total");
+        Map<String, Object> result = dormRoomMapper.selectMaps(qw).get(0);
+        return ((Number) result.get("total")).longValue();
     }
 
     /**
-     * 获取每栋宿舍学生总人数
+     * 获取每栋宿舍学生总人数（单条SQL聚合）
      */
     @Override
     public Long getEachBuildingStuNum(int dormBuildId) {
-
-        QueryWrapper<DormRoom> qw1 = new QueryWrapper<>();
-        qw1.eq("dormbuild_id", dormBuildId);
-        qw1.isNotNull("first_bed");
-        Long first_bed = dormRoomMapper.selectCount(qw1);
-
-        QueryWrapper<DormRoom> qw2 = new QueryWrapper<>();
-        qw2.eq("dormbuild_id", dormBuildId);
-        qw2.isNotNull("second_bed");
-        Long second_bed = dormRoomMapper.selectCount(qw2);
-
-        QueryWrapper<DormRoom> qw3 = new QueryWrapper<>();
-        qw3.eq("dormbuild_id", dormBuildId);
-        qw3.isNotNull("third_bed");
-        Long third_bed = dormRoomMapper.selectCount(qw3);
-
-        QueryWrapper<DormRoom> qw4 = new QueryWrapper<>();
-        qw4.eq("dormbuild_id", dormBuildId);
-        qw4.isNotNull("fourth_bed");
-        Long fourth_bed = dormRoomMapper.selectCount(qw4);
-
-        Long count = first_bed + second_bed + third_bed + fourth_bed;
-
-        return count;
+        QueryWrapper<DormRoom> qw = new QueryWrapper<>();
+        qw.eq("dormbuild_id", dormBuildId);
+        qw.select("COUNT(first_bed) + COUNT(second_bed) + COUNT(third_bed) + COUNT(fourth_bed) as total");
+        Map<String, Object> result = dormRoomMapper.selectMaps(qw).get(0);
+        return ((Number) result.get("total")).longValue();
     }
 
     /**

@@ -110,6 +110,25 @@ export default {
             },
         };
     },
+    computed: {
+        infoList() {
+            return [
+                { label: '用户名', value: this.username, icon: 'user' },
+                { label: '姓名', value: this.name, icon: 'avatar' },
+                { label: '性别', value: this.gender, icon: this.gender === '女' ? 'female' : 'male' },
+                { label: '年龄', value: String(this.age), icon: 'calendar' },
+                { label: '手机号', value: this.phoneNum, icon: 'iphone' },
+                { label: '邮箱', value: this.email, icon: 'message' },
+            ];
+        },
+        identityLabel() {
+            const map = { stu: '学生', dormManager: '宿管', admin: '管理员' };
+            return map[this.identity] || this.identity;
+        },
+        identityClass() {
+            return 'role-' + (this.identity || 'stu');
+        },
+    },
     created() {
         this.load();
         this.find();

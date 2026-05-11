@@ -6,21 +6,21 @@ export const constantRoutes = [
     {path: '/Login', name: 'Login', component: () => import("@/views/Login")},
     {
         path: '/Layout', name: 'Layout', component: Layout, children: [
-            //
+            // 管理员 & 宿管页面
             {path: '/home', name: 'Home', component: () => import("@/views/Home")},
-            {path: '/stuInfo', name: 'StuInfo', component: () => import("@/views/StuInfo")},
-            {path: '/dormManagerInfo', name: 'DormManagerInfo', component: () => import("@/views/DormManagerInfo")},
-            {path: '/buildingInfo', name: 'BuildingInfo', component: () => import("@/views/BuildingInfo")},
-            {path: '/roomInfo', name: 'RoomInfo', component: () => import("@/views/RoomInfo")},
-            {path: '/noticeInfo', name: 'NoticeInfo', component: () => import("@/views/NoticeInfo")},
-            {path: '/adjustRoomInfo', name: 'AdjustRoomInfo', component: () => import("@/views/AdjustRoomInfo")},
-            {path: '/repairInfo', name: 'RepairInfo', component: () => import("@/views/RepairInfo")},
-            {path: '/visitorInfo', name: 'VisitorInfo', component: () => import("@/views/VisitorInfo")},
-            //
-            {path: '/myRoomInfo', name: 'MyRoomInfo', component: () => import("@/views/MyRoomInfo")},
-            {path: '/applyRepairInfo', name: 'ApplyRepairInfo', component: () => import("@/views/ApplyRepairInfo")},
-            {path: '/applyChangeRoom', name: 'ApplyChangeRoom', component: () => import("@/views/ApplyChangeRoom")},
-
+            {path: '/stuInfo', name: 'StuInfo', component: () => import("@/views/StuInfo"), meta: {roles: ['admin']}},
+            {path: '/dormManagerInfo', name: 'DormManagerInfo', component: () => import("@/views/DormManagerInfo"), meta: {roles: ['admin']}},
+            {path: '/buildingInfo', name: 'BuildingInfo', component: () => import("@/views/BuildingInfo"), meta: {roles: ['admin', 'dormManager']}},
+            {path: '/roomInfo', name: 'RoomInfo', component: () => import("@/views/RoomInfo"), meta: {roles: ['admin', 'dormManager']}},
+            {path: '/noticeInfo', name: 'NoticeInfo', component: () => import("@/views/NoticeInfo"), meta: {roles: ['admin', 'dormManager']}},
+            {path: '/adjustRoomInfo', name: 'AdjustRoomInfo', component: () => import("@/views/AdjustRoomInfo"), meta: {roles: ['admin', 'dormManager']}},
+            {path: '/repairInfo', name: 'RepairInfo', component: () => import("@/views/RepairInfo"), meta: {roles: ['admin', 'dormManager']}},
+            {path: '/visitorInfo', name: 'VisitorInfo', component: () => import("@/views/VisitorInfo"), meta: {roles: ['admin', 'dormManager']}},
+            // 学生页面
+            {path: '/myRoomInfo', name: 'MyRoomInfo', component: () => import("@/views/MyRoomInfo"), meta: {roles: ['stu']}},
+            {path: '/applyRepairInfo', name: 'ApplyRepairInfo', component: () => import("@/views/ApplyRepairInfo"), meta: {roles: ['stu']}},
+            {path: '/applyChangeRoom', name: 'ApplyChangeRoom', component: () => import("@/views/ApplyChangeRoom"), meta: {roles: ['stu']}},
+            // 所有角色
             {path: '/selfInfo', name: 'SelfInfo', component: () => import("@/views/SelfInfo")},
         ]
     },
@@ -32,11 +32,6 @@ const router = createRouter({
 })
 //路由守卫
 router.beforeEach((to, from, next) => {
-    //to 要访问的路径
-    //from 代表从哪个路径跳转而来
-    // next 是函数，表示放行
-    // next() 放行
-    // next('/*') 强制跳转
     const user = window.sessionStorage.getItem('user')
     if (to.path === '/Login') {
         return next();
@@ -46,6 +41,13 @@ router.beforeEach((to, from, next) => {
     }
     if (to.path === '/' && user) {
         return next('/home')
+    }
+    // 角色权限校验
+    if (to.meta && to.meta.roles) {
+        const identity = JSON.parse(window.sessionStorage.getItem('identity'))
+        if (!to.meta.roles.includes(identity)) {
+            return next('/home')
+        }
     }
     next()
 })

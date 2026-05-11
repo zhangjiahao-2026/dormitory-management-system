@@ -1,4 +1,5 @@
 .rightSpan {
     display: inline-block;
     width: 80px;
+    color: var(--text-secondary);
 }

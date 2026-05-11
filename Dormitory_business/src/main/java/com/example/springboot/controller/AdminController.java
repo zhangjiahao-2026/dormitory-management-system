@@ -1,20 +1,22 @@
 package com.example.springboot.controller;
 
 import com.example.springboot.common.Result;
-import com.example.springboot.common.UID;
 import com.example.springboot.entity.Admin;
 import com.example.springboot.entity.User;
 import com.example.springboot.service.AdminService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/admin")
 public class AdminController {
 
-    String uid = new UID().produceUID();
+    private static final Logger log = LoggerFactory.getLogger(AdminController.class);
 
     @Resource
     private AdminService adminService;
@@ -23,11 +25,10 @@ public class AdminController {
      * 管理员登录
      */
     @PostMapping("/login")
-    public Result<?> login(@RequestBody User user, HttpSession session) {
+    public Result<?> login(@Valid @RequestBody User user, HttpSession session) {
         Object o = adminService.adminLogin(user.getUsername(), user.getPassword());
         if (o != null) {
-            System.out.println(o);
-            //存入session
+            log.info("管理员登录成功: {}", user.getUsername());
             session.setAttribute("Identity", "admin");
             session.setAttribute("User", o);
             return Result.success(o);

@@ -5,7 +5,7 @@
 .demo-table-expand label {
     text-align: center;
     width: 90px;
-    color: #99a9bf;
+    color: var(--text-secondary);
 }
 
 .demo-table-expand .el-form-item {
@@ -19,16 +19,22 @@
     margin-left: 5px;
     display: flex;
     font-size: 16px;
+    align-items: center;
+    gap: 6px;
 }
 
 .el-form--inline-icon > .el-icon {
     cursor: pointer;
-    margin: 0 5px;
+    color: var(--text-secondary);
+    transition: color 0.2s;
+}
+
+.el-form--inline-icon > .el-icon:hover {
+    color: var(--primary-color);
 }
 
 .item {
     margin-left: 50px;
     margin-bottom: 0;
     width: 20%;
-
 }

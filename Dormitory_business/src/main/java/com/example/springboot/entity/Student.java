@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotBlank;
+
 /**
  * 学生
  */
@@ -14,15 +16,15 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-// 告诉Mybatis-plus，这个类与数据库中的哪张表有关
 @TableName(value = "student")
 public class Student {
-    // 告诉Mybatis-plus, 属性对应表中的字段
 
+    @NotBlank(message = "用户名不能为空")
     @TableId(value = "username")
     private String username;
     @TableField("password")
     private String password;
+    @NotBlank(message = "姓名不能为空")
     @TableField("name")
     private String name;
     @TableField("age")

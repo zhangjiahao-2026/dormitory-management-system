@@ -19,7 +19,10 @@ export default {
           data: []
         },
         yAxis: {
-          type: "value"
+          type: "value",
+          min: 0,
+          minInterval: 1,
+          interval: 1
         },
         series: [
           {

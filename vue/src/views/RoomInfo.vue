@@ -223,16 +223,16 @@
                 <el-input v-model.number="form.dormRoomId" disabled="true" style="width: 80%"></el-input>
               </el-form-item>
               <el-form-item v-if="this.bedNum === 1" label="床位(一)" prop="firstBed">
-                <el-input v-model.number="form.firstBed" placeholder="请输入学号" style="width: 80%"></el-input>
+                <el-input v-model="form.firstBed" placeholder="请输入学号" style="width: 80%"></el-input>
               </el-form-item>
               <el-form-item v-if="this.bedNum === 2" label="床位(二)" prop="secondBed">
-                <el-input v-model.number="form.secondBed" placeholder="请输入学号" style="width: 80%"></el-input>
+                <el-input v-model="form.secondBed" placeholder="请输入学号" style="width: 80%"></el-input>
               </el-form-item>
               <el-form-item v-if="this.bedNum === 3" label="床位(三)" prop="thirdBed">
-                <el-input v-model.number="form.thirdBed" placeholder="请输入学号" style="width: 80%"></el-input>
+                <el-input v-model="form.thirdBed" placeholder="请输入学号" style="width: 80%"></el-input>
               </el-form-item>
               <el-form-item v-if="this.bedNum === 4" label="床位(四)" prop="fourthBed">
-                <el-input v-model.number="form.fourthBed" placeholder="请输入学号" style="width: 80%"></el-input>
+                <el-input v-model="form.fourthBed" placeholder="请输入学号" style="width: 80%"></el-input>
               </el-form-item>
             </el-form>
             <template #footer>

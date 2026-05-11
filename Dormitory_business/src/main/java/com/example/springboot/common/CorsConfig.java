@@ -11,16 +11,18 @@ public class CorsConfig {
 
     private CorsConfiguration buildConfig() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.addAllowedOrigin("*"); // 1容许任何域名使用
-        corsConfiguration.addAllowedHeader("*"); // 2容许任何头
-        corsConfiguration.addAllowedMethod("*"); // 3容许任何方法（post、get等）
+        corsConfiguration.addAllowedOriginPattern("*");
+        corsConfiguration.addAllowedHeader("*");
+        corsConfiguration.addAllowedMethod("*");
+        corsConfiguration.setAllowCredentials(true);
+        corsConfiguration.setMaxAge(3600L);
         return corsConfiguration;
     }
 
     @Bean
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", buildConfig()); // 4
+        source.registerCorsConfiguration("/**", buildConfig());
         return new CorsFilter(source);
     }
 }

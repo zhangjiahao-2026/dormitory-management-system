@@ -20,6 +20,16 @@ export default {
             activities: [],
         };
     },
+    computed: {
+        stats() {
+            return [
+                { label: '学生统计', value: this.studentNum, icon: 'user' },
+                { label: '住宿人数', value: this.haveRoomStudentNum, icon: 'house' },
+                { label: '报修统计', value: this.repairOrderNum, icon: 'set-up' },
+                { label: '空宿舍统计', value: this.noFullRoomNum, icon: 'office-building' },
+            ]
+        }
+    },
     created() {
         this.getHomePageNotice();
         this.getStuNum();

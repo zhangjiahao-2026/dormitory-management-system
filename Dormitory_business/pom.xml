@@ -22,6 +22,10 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter</artifactId>
             <version>2.2.2</version>
@@ -57,12 +61,12 @@
         <dependency>
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
-            <version>1.9.3</version>
+            <version>1.9.4</version>
         </dependency>
         <dependency>
             <groupId>commons-collections</groupId>
             <artifactId>commons-collections</artifactId>
-            <version>3.2.1</version>
+            <version>3.2.2</version>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
@@ -72,7 +76,7 @@
         <dependency>
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
-            <version>1.1.1</version>
+            <version>1.2</version>
         </dependency>
         <dependency>
             <groupId>net.sf.ezmorph</groupId>
@@ -82,14 +86,8 @@
         <dependency>
             <groupId>net.sf.json-lib</groupId>
             <artifactId>json-lib</artifactId>
-            <version>2.2.3</version>
-            <classifier>jdk15</classifier><!-- jdk版本 -->
-        </dependency>
-        <!--  fastjson-->
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>1.2.28</version>
+            <version>2.4</version>
+            <classifier>jdk15</classifier>
         </dependency>
         <!--        hutool-->
         <dependency>

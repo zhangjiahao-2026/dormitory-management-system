@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#409EFF"/>
+  <!-- 屋顶 -->
+  <polygon points="32,12 10,30 54,30" fill="white"/>
+  <!-- 楼体 -->
+  <rect x="14" y="30" width="36" height="22" fill="white"/>
+  <!-- 窗户 -->
+  <rect x="18" y="34" width="10" height="8" rx="1.5" fill="#409EFF"/>
+  <rect x="36" y="34" width="10" height="8" rx="1.5" fill="#409EFF"/>
+  <!-- 门 -->
+  <rect x="28" y="40" width="8" height="12" rx="1.5" fill="#409EFF"/>
+  <!-- 门把手 -->
+  <circle cx="34" cy="46" r="1" fill="white"/>
+</svg>

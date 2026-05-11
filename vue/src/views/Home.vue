@@ -1,77 +1,213 @@
 <template>
-    <el-card style="margin: 15px; min-height: calc(100vh - 80px)">
-        <!--    头部数据-->
-        <div>
-            <el-row :gutter="20" class="topInfo">
-                <el-col :span="6">
-                    <div id="stuNumDiv" class="el-colDiv">
-                        <div id="ssv1-main-text" class="nowDiv">实时</div>
-                        <span class="title">学生统计</span><br/>
-                        <span class="digital">{{ this.studentNum }}</span><br/>
-                        <span class="last-span">当前分类总记录数</span>
-                    </div>
-                </el-col>
-                <el-col :span="6">
-                    <div id="haveRoomDiv" class="el-colDiv">
-                        <div id="ssv2-main-text" class="nowDiv">实时</div>
-                        <span class="title">住宿人数</span><br/>
-                        <span class="digital">{{ this.haveRoomStudentNum }}</span><br/>
-                        <span class="last-span">当前分类总记录数</span>
-                    </div>
-                </el-col>
-                <el-col :span="6">
-                    <div id="repairNum" class="el-colDiv">
-                        <div id="ssv3-main-text" class="nowDiv">实时</div>
-                        <span class="title">报修统计</span><br/>
-                        <span class="digital">{{ this.repairOrderNum }}</span><br/>
-                        <span class="last-span">当前分类总记录数</span>
-                    </div>
-                </el-col>
-                <el-col :span="6">
-                    <div id="emptyRoom" class="el-colDiv">
-                        <div id="ssv4-main-text" class="nowDiv">实时</div>
-                        <span class="title">空宿舍统计</span><br/>
-                        <span class="digital">{{ this.noFullRoomNum }}</span><br/>
-                        <span class="last-span">当前分类总记录数</span>
-                    </div>
-                </el-col>
-            </el-row>
+  <div class="home">
+    <!-- stat cards -->
+    <div class="stats-row">
+      <div class="stat-card" v-for="(s, i) in stats" :key="i" :class="'stat-' + i">
+        <div class="stat-ring" :style="{ background: s.gradient }">
+          <el-icon :size="22"><component :is="s.icon"/></el-icon>
         </div>
-        <!-- 下部-->
-        <div style="display: flex;width: 100%;margin-top: 40px;align-items: center;justify-content: center;">
-            <!--   左侧 宿舍通告-->
-            <div style="margin-right: 5%">
-                <span style="font-size: 22px;display: block;margin-bottom: 30px;margin-left: 10px;">宿舍通告</span>
-                <el-timeline>
-                    <el-timeline-item v-for="(activity, index) in activities.slice(0, 8)" :key="index"
-                                      :timestamp="activity.releaseTime">
-                        <span style="font-size: 15px">{{ activity.title }}</span><br/>
-<!--                        <span style="font-size: 10px">{{ activity.content }}</span>-->
-                    </el-timeline-item>
-                </el-timeline>
-            </div>
-            <!--   中部-->
-            <div style="height: 588px">
-        <span style="
-            font-size: 22px;
-            display: block;
-            margin-bottom: 30px;
-            margin-left: 10px;
-          ">宿舍学生人数分布</span>
-                <home_echarts/>
-            </div>
-            <!--  右侧-->
-            <div style="margin-left: 5%">
-                <!--   天气组件-->
-                <weather/>
-                <!--    日历组件-->
-                <el-card style="width: 380px; max-height: 440px; margin-top: 17px">
-                    <Calender/>
-                </el-card>
-            </div>
+        <div class="stat-body">
+          <span class="stat-label">{{ s.label }}</span>
+          <span class="stat-num">{{ s.value }}</span>
         </div>
-    </el-card>
+        <div class="stat-live">
+          <span class="live-dot"></span>
+          实时
+        </div>
+      </div>
+    </div>
+
+    <!-- content grid -->
+    <div class="content-grid">
+      <!-- announcements -->
+      <el-card class="panel panel-notice">
+        <template #header>
+          <div class="panel-title">
+            <el-icon :size="16"><bell/></el-icon>
+            <span>宿舍通告</span>
+          </div>
+        </template>
+        <el-timeline class="notice-timeline">
+          <el-timeline-item
+              v-for="(a, idx) in activities.slice(0, 8)"
+              :key="idx"
+              :timestamp="a.releaseTime"
+              placement="top"
+              color="var(--accent)"
+              hollow
+          >
+            <div class="notice-item">{{ a.title }}</div>
+          </el-timeline-item>
+        </el-timeline>
+      </el-card>
+
+      <!-- chart -->
+      <el-card class="panel panel-chart">
+        <template #header>
+          <div class="panel-title">
+            <el-icon :size="16"><data-analysis/></el-icon>
+            <span>学生分布</span>
+          </div>
+        </template>
+        <home_echarts/>
+      </el-card>
+
+      <!-- right column -->
+      <div class="panel-right">
+        <weather/>
+        <el-card class="panel panel-cal">
+          <Calender/>
+        </el-card>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script src="@/assets/js/Home.js"></script>
-<style scoped>@import '../assets/css/Home.css';</style>
+
+<style scoped>
+.home {
+  padding: 24px;
+}
+
+/* —— stat cards —— */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border-radius: var(--r-lg);
+  padding: 22px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: var(--shadow-card);
+  transition: all .3s var(--ease);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-3px);
+}
+
+.stat-ring {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.stat-0 .stat-ring { background: linear-gradient(135deg, #c45d3e, #e8a88a); }
+.stat-1 .stat-ring { background: linear-gradient(135deg, #2d7d6f, #5ba8a0); }
+.stat-2 .stat-ring { background: linear-gradient(135deg, #6b5b95, #a78bba); }
+.stat-3 .stat-ring { background: linear-gradient(135deg, #c49b3e, #d4b87a); }
+
+.stat-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.stat-label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-bottom: 4px;
+  letter-spacing: .5px;
+}
+
+.stat-num {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--text-title);
+  line-height: 1.1;
+}
+
+.stat-live {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: .5px;
+}
+
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #52c41a;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .4; }
+}
+
+/* —— content grid —— */
+.content-grid {
+  display: grid;
+  grid-template-columns: 260px 1fr 380px;
+  gap: 20px;
+  align-items: start;
+}
+
+.panel {
+  border-radius: var(--r-lg) !important;
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-title);
+}
+
+/* notice */
+.notice-timeline :deep(.el-timeline-item__timestamp) {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.notice-item {
+  font-size: 13px;
+  color: var(--text-body);
+  line-height: 1.6;
+}
+
+/* chart */
+.panel-chart {
+  min-height: 480px;
+}
+
+/* right */
+.panel-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.panel-cal {
+  width: 100%;
+}
+</style>

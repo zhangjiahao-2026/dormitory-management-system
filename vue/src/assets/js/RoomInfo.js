@@ -7,8 +7,13 @@ export default {
     components: {},
     data() {
         const checkStuNum = (rule, value, callback) => {
-            request.get("/stu/exist/" + value).then((res) => {
-                request.get("/room/judgeHadBed/" + value).then((result) => {
+            const stuId = (value ?? "").toString().trim();
+            if (!stuId) {
+                callback(new Error("请输入学号"));
+                return;
+            }
+            request.get("/stu/exist/" + stuId).then((res) => {
+                request.get("/room/judgeHadBed/" + stuId).then((result) => {
                     if (res.code === "0" && result.code === "0") {
                         callback();
                     } else if (res.code === "-1" && result.code === "0") {
@@ -18,8 +23,8 @@ export default {
                     } else {
                         callback(new Error("请输入正确的数据"));
                     }
-                });
-            });
+                }).catch(() => callback(new Error("校验失败，请稍后重试")));
+            }).catch(() => callback(new Error("校验失败，请稍后重试")));
         };
         return {
             bedNum: 0,
@@ -50,7 +55,7 @@ export default {
             rules: {
                 dormRoomId: [
                     {required: true, message: "请输入房间号", trigger: "blur"},
-                    {pattern: /^[0-9]{4}$/, message: "范围：1000-9999", trigger: "blur"},
+                    {pattern: /^[0-9]{3,4}$/, message: "范围：100-9999", trigger: "blur"},
                 ],
                 floorNum: [
                     {required: true, message: "请输入楼层数", trigger: "blur"},

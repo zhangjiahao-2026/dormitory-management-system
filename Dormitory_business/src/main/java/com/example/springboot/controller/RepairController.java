@@ -77,7 +77,7 @@ public class RepairController {
                                     @RequestParam(defaultValue = "10") Integer pageSize,
                                     @RequestParam(defaultValue = "") String search,
                                     @PathVariable String name) {
-        System.out.println(name);
+        // 个人报修查询
         Page page = repairService.individualFind(pageNum, pageSize, search, name);
         if (page != null) {
             return Result.success(page);

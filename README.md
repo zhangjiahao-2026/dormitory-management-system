@@ -1,102 +1,130 @@
-## DormitorySystem
+# 高校宿舍管理系统
 
-![IDE](https://img.shields.io/badge/IDE-IntelliJ%20IDEA-brightgreen.svg) ![JDK](https://img.shields.io/badge/Java-11-blue.svg) ![Database](https://img.shields.io/badge/Database-MySQL5.7-lightgrey.svg)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.6.3-green.svg) ![Vue](https://img.shields.io/badge/Vue-3-blue.svg) ![MySQL](https://img.shields.io/badge/MySQL-5.7+-lightgrey.svg) ![Java](https://img.shields.io/badge/Java-11-orange.svg)
 
-- 毕业设计
-- SSM框架
-- Layui框架
+基于 Spring Boot + Vue 3 的高校宿舍管理系统，支持三种角色：系统管理员、宿舍管理员、学生。
 
-<img width="48" height="48" src="https://img.icons8.com/emoji/48/china-emoji.png" alt="china-emoji"/>
- <img width="40" height="40" src="https://img.icons8.com/color/30/intellij-idea.png" alt="intellij-idea"/>
+## 功能概览
 
-视问题==》有偿咨询、有偿提供文档资料
+**系统管理员**
+- 首页数据看板（ECharts 可视化）
+- 学生管理、宿管管理、楼宇管理、房间管理
+- 公告管理、报修管理、调宿管理、访客管理
 
-![qq](https://img.shields.io/badge/QQ-1786234724-blue.svg)
+**宿舍管理员**
+- 首页数据看板
+- 学生查询、楼宇/房间管理、公告发布
+- 报修处理、调宿审批、访客登记
 
-#### 1、项目介绍
+**学生**
+- 查看我的宿舍信息
+- 在线报修、申请调宿
+- 个人信息管理
 
-该系统拥有三种用户类型：
+## 技术栈
 
-:older_man:
+| 层 | 技术 |
+|---|---|
+| 后端 | Spring Boot 2.6.3、MyBatis-Plus 3.5.1 |
+| 前端 | Vue 3、Element Plus、Axios、ECharts |
+| 数据库 | MySQL 5.7+ |
+| 构建工具 | Maven、Vue CLI |
 
-1. 系统管理员
-   * 管理员：查看当前宿舍学生人数、住宿人数、报修数量、空舍数量、查看学生信息、宿管信息、查看楼宇信息、查看公告信息、查看房间信息、查看报修信息、查看调寝信息、访客管理、查看所有用户信息
+## 项目结构
 
-:woman:
+```
+DormitoryManagementSystem/
+├── Dormitory_business/     # Spring Boot 后端
+│   └── src/main/java/com/example/springboot/
+│       ├── common/         # 配置类、工具类、拦截器
+│       ├── controller/     # 控制器层
+│       ├── entity/         # 实体类
+│       ├── mapper/         # MyBatis-Plus Mapper
+│       └── service/        # 业务逻辑层
+├── vue/                    # Vue 3 前端
+│   └── src/
+│       ├── assets/         # CSS、JS
+│       ├── components/     # 公共组件
+│       ├── layout/         # 布局组件
+│       ├── router/         # 路由配置
+│       ├── utils/          # Axios 封装
+│       └── views/          # 页面视图
+└── doc/                    # 文档与截图
+    ├── dormitory.sql       # 建表脚本（含初始数据）
+    └── img/                # 运行效果截图
+```
 
-1. 宿舍管理员
-   * 宿舍管理员：查看当前宿舍学生人数、住宿人数、报修数量、空舍数量、查看学生信息、查看楼宇信息、查看公告信息、查看房间信息、查看报修信息、查看调寝信息、访客管理、查看个人信息
+## 快速启动
 
-:baby:
+### 环境要求
 
-1. 学生
-   * 查看当前宿舍学生人数、住宿人数、报修数量、空舍数量、查看我的宿舍、申请调宿、申请报修、查看个人信息
+- JDK 11
+- Maven 3.6+
+- Node.js 14+
+- MySQL 5.7+
 
-#### 2、开发工具
+### 1. 初始化数据库
 
-​	后端：idea   
-​	前端：vscode
+```bash
+mysql -u root -p < doc/dormitory.sql
+```
 
-#### 3、项目技术
+### 2. 启动后端
 
-​	后端框架：Springboot、MybatisPlus
-​	前端技术：ElementUI、vue、css、JavaScript、axios
+```bash
+cd Dormitory_business
+# 修改 src/main/resources/application.properties 中的数据库连接信息
+mvn spring-boot:run
+```
 
-#### 4、环境
+后端默认运行在 `http://localhost:9091`
 
-jdk11、maven、node、mysql
+### 3. 启动前端
 
-#### 5、硬件环境
+```bash
+cd vue
+npm install
+npm run serve
+```
 
-Windows 或者 Mac OS(不挑剔)
+前端默认运行在 `http://localhost:8080`
 
-### 配置
+### 默认账号
 
+| 角色 | 用户名 | 密码 |
+|------|--------|------|
+| 管理员 | admin | 123456 |
+| 宿管 | manager1 | 123456 |
+| 学生 | stu001 | 123456 |
 
-1.修改 application.properties文件
+## 运行效果
 
-![image-20230606103746253](/doc/img/application.properties文件.png)
+### 管理员主页
 
-2.**进入vue  使用控制台打开**   npm install  而后 npm run serve 启动前端
+ECharts 数据可视化 + 天气组件 + 日历组件
 
-3.启动 SpringbootApplication
+![管理员主页](doc/img/管理员主页.png)
 
-4.用户名或密码在数据库中查看三个用户三个表
+### 房间分配
 
-### 运行效果
+![房间分配](doc/img/房间分配.png)
 
-图片也在doc --》》》 img中
+### 公告管理
 
-##### 个人中心
+![公告管理](doc/img/公告管理.png)
 
-![个人中心](/doc/img/个人中心.png)
+### 报修管理
 
-##### 管理员主页
+![报修管理](doc/img/报修管理.png)
 
-ECharts 可视化
+### 调宿申请
 
-天气组件
+![调宿申请](doc/img/调宿申请.png)
 
-日历组件
+### 访客管理
 
-![管理员主页](/doc/img/管理员主页.png)
+![访客管理](doc/img/访客管理.png)
 
-##### 房间分配
+### 个人中心
 
-![房间分配](/doc/img/房间分配.png)
-
-##### 公告管理
-
-**![公告管理](/doc/img/公告管理.png)**
-
-##### 报修管理
-
-![报修管理](/doc/img/报修管理.png)
-
-##### 调宿申请
-
-![调宿申请](/doc/img/调宿申请.png)
-
-##### 访客管理
-
-![访客管理](/doc/img/访客管理.png)
+![个人中心](doc/img/个人中心.png)

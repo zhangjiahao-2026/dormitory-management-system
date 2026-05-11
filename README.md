@@ -49,9 +49,8 @@ DormitoryManagementSystem/
 │       ├── router/         # 路由配置
 │       ├── utils/          # Axios 封装
 │       └── views/          # 页面视图
-└── doc/                    # 文档与截图
-    ├── dormitory.sql       # 建表脚本（含初始数据）
-    └── img/                # 运行效果截图
+└── doc/                    # 文档
+    └── dormitory.sql       # 建表脚本（含初始数据）
 ```
 
 ## 快速启动

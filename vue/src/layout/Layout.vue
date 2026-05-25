@@ -1,6 +1,6 @@
 <template>
   <el-container class="shell">
-    <el-aside width="240px" class="shell-aside">
+    <el-aside width="184px" class="shell-aside">
       <Aside/>
     </el-aside>
     <el-container class="shell-body">
@@ -31,7 +31,9 @@ export default {
 }
 
 .shell-aside {
-  background: var(--sidebar-bg);
+  background:
+      linear-gradient(180deg, rgba(233,251,255,.86), rgba(214,245,239,.82)),
+      url("~@/assets/images/campus-bg.png") left center / cover no-repeat;
   position: relative;
   overflow: hidden;
 }
@@ -41,7 +43,7 @@ export default {
   content: '';
   position: absolute;
   inset: 0;
-  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+  background: linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,0));
   pointer-events: none;
   z-index: 1;
 }
@@ -52,19 +54,25 @@ export default {
 }
 
 .shell-header {
-  height: 60px !important;
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border-light);
+  height: 54px !important;
+  background:
+      linear-gradient(180deg, rgba(224,249,255,.92), rgba(255,255,255,.88)),
+      url("~@/assets/images/campus-bg.png") top right / cover no-repeat;
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(215,236,234,.72);
   display: flex;
   align-items: center;
-  padding: 0 28px;
+  padding: 0 26px;
   z-index: 10;
   flex-shrink: 0;
+  box-shadow: 0 10px 28px rgba(20,83,92,.05);
 }
 
 .shell-main {
   padding: 0;
-  background: var(--bg-page);
+  background:
+      linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.64)),
+      url("~@/assets/images/campus-bg.png") center / cover no-repeat;
   overflow-y: auto;
   flex: 1;
 }

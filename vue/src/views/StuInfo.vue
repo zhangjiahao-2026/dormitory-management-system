@@ -50,18 +50,20 @@
         <el-table-column prop="age" label="年龄" sortable width="90"/>
         <el-table-column prop="phoneNum" label="手机号" min-width="130"/>
         <el-table-column prop="email" label="邮箱" :show-overflow-tooltip="true" min-width="180"/>
-        <el-table-column label="操作" width="130" fixed="right">
+        <el-table-column label="操作" width="150" fixed="right">
           <template #default="scope">
-            <el-button type="primary" link size="small" @click="handleEdit(scope.row)">
-              <el-icon :size="14"><edit/></el-icon> 编辑
-            </el-button>
-            <el-popconfirm title="确认删除该学生？" @confirm="handleDelete(scope.row.username)">
-              <template #reference>
-                <el-button type="danger" link size="small">
-                  <el-icon :size="14"><delete/></el-icon> 删除
-                </el-button>
-              </template>
-            </el-popconfirm>
+            <div class="crud-actions-vertical">
+              <el-button type="primary" link size="small" @click="handleEdit(scope.row)">
+                <el-icon :size="14"><edit/></el-icon> 编辑
+              </el-button>
+              <el-popconfirm title="确认删除该学生？" @confirm="handleDelete(scope.row.username)">
+                <template #reference>
+                  <el-button type="danger" link size="small">
+                    <el-icon :size="14"><delete/></el-icon> 删除
+                  </el-button>
+                </template>
+              </el-popconfirm>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -132,23 +134,24 @@
 
 <style scoped>
 .crud {
-  padding: 24px;
+  padding: 16px 20px 20px;
 }
 
 .crud-breadcrumb {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .crud-card {
-  min-height: calc(100vh - 128px);
+  min-height: 0;
+  border-radius: 14px !important;
 }
 
 .crud-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--border-light);
 }
 
@@ -159,16 +162,40 @@
 }
 
 .crud-input {
-  width: 260px;
+  width: 300px;
 }
 
 .crud-table {
   border-radius: var(--r-md);
 }
 
+.crud-table :deep(.el-table__cell) {
+  padding: 9px 0;
+}
+
 /* stripe row color */
 .crud-table :deep(.el-table__row--striped td) {
   background: var(--bg-input) !important;
+}
+
+.crud-actions-vertical {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 32px;
+}
+
+.crud-actions-vertical :deep(.el-button) {
+  width: 58px;
+  min-height: 28px;
+  justify-content: center;
+  border-radius: 6px !important;
+}
+
+.crud-actions-vertical :deep(.el-button + .el-button) {
+  margin-left: 0;
 }
 
 .gender-tag {

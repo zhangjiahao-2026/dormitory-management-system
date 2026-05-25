@@ -144,20 +144,19 @@ export default {
 
 <style scoped>
 .weather-card {
-  border-radius: var(--r-lg) !important;
+  border-radius: 18px !important;
   overflow: hidden;
   position: relative;
+  background:
+      linear-gradient(135deg, rgba(35,183,164,.12), rgba(90,167,255,.10) 54%, rgba(255,157,124,.13)),
+      rgba(255,255,255,.86) !important;
 }
 
 .weather-card::before {
   content: '';
   position: absolute;
-  top: -40px;
-  right: -30px;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: rgba(196,93,62,.06);
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.18) 0 12%, transparent 12% 24%, rgba(255,255,255,.16) 24% 36%, transparent 36%) 0 0 / 28px 28px;
   pointer-events: none;
 }
 
@@ -186,7 +185,7 @@ export default {
 .weather-state {
   font-size: 12px;
   color: var(--text-muted);
-  background: var(--bg-page);
+  background: rgba(255,255,255,.70);
   padding: 2px 10px;
   border-radius: 12px;
 }
@@ -215,7 +214,7 @@ export default {
   font-weight: 900;
   color: var(--text-title);
   line-height: 1;
-  letter-spacing: -1px;
+  letter-spacing: 0;
 }
 
 .weather-unit {
@@ -241,13 +240,13 @@ export default {
   font-size: 11px;
   font-weight: 500;
   color: var(--text-muted);
-  background: var(--bg-page);
+  background: rgba(255,255,255,.70);
   border-radius: 8px;
 }
 
 .meta-time {
   color: var(--accent);
-  background: rgba(196,93,62,.06);
+  background: rgba(35,183,164,.10);
 }
 
 /* —— placeholder —— */

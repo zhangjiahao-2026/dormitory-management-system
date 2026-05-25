@@ -1,40 +1,43 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
 
 :root {
-    /* —— core palette —— */
-    --accent:          #c45d3e;
-    --accent-hover:    #a94e33;
-    --accent-light:    rgba(196, 93, 62, .08);
-    --accent-glow:     rgba(196, 93, 62, .15);
+    /* —— campus palette —— */
+    --accent:          #23b7a4;
+    --accent-hover:    #119684;
+    --accent-light:    rgba(35, 183, 164, .12);
+    --accent-glow:     rgba(35, 183, 164, .22);
+    --accent-blue:     #5aa7ff;
+    --accent-peach:    #ff9d7c;
+    --accent-lime:     #a7df73;
 
     /* —— sidebar —— */
-    --sidebar-bg:      #1e1a17;
-    --sidebar-surface: rgba(255,255,255,.05);
-    --sidebar-hover:   rgba(255,255,255,.08);
-    --sidebar-active:  rgba(196, 93, 62, .18);
-    --sidebar-text:    rgba(255,255,255,.65);
+    --sidebar-bg:      #123b48;
+    --sidebar-surface: rgba(255,255,255,.08);
+    --sidebar-hover:   rgba(255,255,255,.12);
+    --sidebar-active:  rgba(35, 183, 164, .24);
+    --sidebar-text:    rgba(255,255,255,.72);
     --sidebar-text-on: rgba(255,255,255,.95);
 
     /* —— surfaces —— */
-    --bg-page:         #f5f0eb;
+    --bg-page:         #eef9f7;
     --bg-card:         #ffffff;
-    --bg-input:        #faf8f6;
-    --border:          #e8e0d8;
-    --border-light:    #f0ebe5;
+    --bg-input:        #f7fcff;
+    --border:          #d7ecea;
+    --border-light:    #e7f4f1;
 
     /* —— text —— */
-    --text-title:      #1e1a17;
-    --text-body:       #3d3530;
-    --text-muted:      #8c7e74;
-    --text-placeholder:#b5a99e;
+    --text-title:      #17323a;
+    --text-body:       #36515a;
+    --text-muted:      #78909a;
+    --text-placeholder:#a4b8bf;
 
-    /* —— shadows (warm tinted) —— */
-    --shadow-xs:       0 1px 2px rgba(30,26,23,.04);
-    --shadow-sm:       0 2px 8px rgba(30,26,23,.06);
-    --shadow-md:       0 4px 16px rgba(30,26,23,.08);
-    --shadow-lg:       0 8px 32px rgba(30,26,23,.10);
-    --shadow-card:     0 1px 3px rgba(30,26,23,.04), 0 8px 24px rgba(30,26,23,.04);
-    --shadow-card-hover: 0 2px 6px rgba(30,26,23,.06), 0 12px 32px rgba(30,26,23,.07);
+    /* —— shadows —— */
+    --shadow-xs:       0 1px 2px rgba(20, 83, 92, .05);
+    --shadow-sm:       0 2px 10px rgba(20, 83, 92, .07);
+    --shadow-md:       0 8px 22px rgba(20, 83, 92, .09);
+    --shadow-lg:       0 18px 44px rgba(20, 83, 92, .12);
+    --shadow-card:     0 1px 2px rgba(20, 83, 92, .05), 0 12px 30px rgba(35, 183, 164, .08);
+    --shadow-card-hover: 0 3px 8px rgba(20, 83, 92, .07), 0 18px 42px rgba(90, 167, 255, .12);
 
     /* —— radius —— */
     --r-sm:  6px;
@@ -58,7 +61,9 @@ html, body, #app { height: 100%; overflow: hidden; }
 body {
     font-family: var(--font-body);
     color: var(--text-body);
-    background: var(--bg-page);
+    background:
+        linear-gradient(135deg, rgba(35,183,164,.10) 0 25%, transparent 25% 50%, rgba(90,167,255,.08) 50% 75%, transparent 75%) 0 0 / 42px 42px,
+        linear-gradient(160deg, #f5fffc 0%, #edf8ff 46%, #fff6f0 100%);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-size: 14px;
@@ -68,20 +73,21 @@ body {
 /* ================== SCROLLBAR ================== */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-thumb {
-    background: rgba(30,26,23,.15);
+    background: rgba(35,183,164,.35);
     border-radius: 10px;
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(30,26,23,.25); }
+::-webkit-scrollbar-thumb:hover { background: rgba(35,183,164,.55); }
 ::-webkit-scrollbar-track { background: transparent; }
 
 /* ================== ELEMENT PLUS OVERRIDES ================== */
 
 /* —— cards —— */
 .el-card {
-    border: none !important;
+    border: 1px solid rgba(217,240,238,.84) !important;
     border-radius: var(--r-lg) !important;
     box-shadow: var(--shadow-card) !important;
-    background: var(--bg-card) !important;
+    background: rgba(255,255,255,.92) !important;
+    backdrop-filter: blur(10px);
     transition: box-shadow .3s var(--ease);
 }
 .el-card:hover {
@@ -99,9 +105,10 @@ body {
 .el-table {
     border-radius: var(--r-md) !important;
     --el-table-border-color: var(--border-light);
+    overflow: hidden;
 }
 .el-table th.el-table__cell {
-    background: var(--bg-input) !important;
+    background: #eaf9f5 !important;
     font-weight: 600;
     color: var(--text-title);
     font-size: 13px;
@@ -112,6 +119,10 @@ body {
 }
 .el-table--enable-row-hover .el-table__body tr:hover > td {
     background: var(--accent-light) !important;
+}
+
+.el-table .cell {
+    line-height: 1.35;
 }
 
 /* —— dialogs —— */
@@ -154,15 +165,17 @@ body {
     --el-button-active-border-color: var(--accent-hover) !important;
 }
 .el-button--primary:not(.is-plain) {
-    box-shadow: 0 2px 8px rgba(196, 93, 62, .25);
+    box-shadow: 0 6px 16px rgba(35, 183, 164, .26);
 }
 .el-button--primary:not(.is-plain):hover {
-    box-shadow: 0 4px 14px rgba(196, 93, 62, .35);
+    box-shadow: 0 10px 22px rgba(35, 183, 164, .34);
     transform: translateY(-1px);
 }
 .el-button--danger {
-    --el-button-bg-color: #d64545 !important;
-    --el-button-border-color: #d64545 !important;
+    --el-button-bg-color: #ff7b73 !important;
+    --el-button-border-color: #ff7b73 !important;
+    --el-button-hover-bg-color: #f0645d !important;
+    --el-button-hover-border-color: #f0645d !important;
 }
 
 /* —— inputs —— */
@@ -173,7 +186,7 @@ body {
     transition: all .2s var(--ease) !important;
 }
 .el-input__wrapper:hover {
-    box-shadow: 0 0 0 1px var(--text-muted) inset !important;
+    box-shadow: 0 0 0 1px var(--accent-blue) inset !important;
 }
 .el-input__wrapper.is-focus {
     box-shadow: 0 0 0 2px var(--accent) inset !important;

@@ -12,6 +12,8 @@ export const constantRoutes = [
             {path: '/dormManagerInfo', name: 'DormManagerInfo', component: () => import("@/views/DormManagerInfo"), meta: {roles: ['admin']}},
             {path: '/buildingInfo', name: 'BuildingInfo', component: () => import("@/views/BuildingInfo"), meta: {roles: ['admin', 'dormManager']}},
             {path: '/roomInfo', name: 'RoomInfo', component: () => import("@/views/RoomInfo"), meta: {roles: ['admin', 'dormManager']}},
+            {path: '/utilityInfo', name: 'UtilityInfo', component: () => import("@/views/UtilityInfo"), meta: {roles: ['admin', 'dormManager']}},
+            {path: '/accessInfo', name: 'AccessInfo', component: () => import("@/views/AccessInfo"), meta: {roles: ['admin', 'dormManager']}},
             {path: '/noticeInfo', name: 'NoticeInfo', component: () => import("@/views/NoticeInfo"), meta: {roles: ['admin', 'dormManager']}},
             {path: '/adjustRoomInfo', name: 'AdjustRoomInfo', component: () => import("@/views/AdjustRoomInfo"), meta: {roles: ['admin', 'dormManager']}},
             {path: '/repairInfo', name: 'RepairInfo', component: () => import("@/views/RepairInfo"), meta: {roles: ['admin', 'dormManager']}},
@@ -39,14 +41,17 @@ router.beforeEach((to, from, next) => {
     if (!user) {
         return next('/Login')
     }
+    const identity = JSON.parse(window.sessionStorage.getItem('identity'))
     if (to.path === '/' && user) {
-        return next('/home')
+        return next(identity === 'stu' ? '/myRoomInfo' : '/home')
+    }
+    if (to.path === '/home' && identity === 'stu') {
+        return next('/myRoomInfo')
     }
     // 角色权限校验
     if (to.meta && to.meta.roles) {
-        const identity = JSON.parse(window.sessionStorage.getItem('identity'))
         if (!to.meta.roles.includes(identity)) {
-            return next('/home')
+            return next(identity === 'stu' ? '/myRoomInfo' : '/home')
         }
     }
     next()

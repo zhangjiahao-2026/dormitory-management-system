@@ -18,10 +18,10 @@
         class="sidebar-nav"
         unique-opened
         background-color="transparent"
-        text-color="rgba(255,255,255,.55)"
-        active-text-color="#e8a88a"
+        text-color="rgba(255,255,255,.72)"
+        active-text-color="#ffffff"
     >
-      <el-menu-item index="/home" class="nav-item">
+      <el-menu-item v-if="judgeIdentity()!==0" index="/home" class="nav-item">
         <el-icon><home-filled/></el-icon>
         <template #title>工作台</template>
       </el-menu-item>
@@ -44,6 +44,7 @@
         </template>
         <el-menu-item v-if="judgeIdentity()!==0" index="/buildingInfo">楼宇信息</el-menu-item>
         <el-menu-item v-if="judgeIdentity()!==0" index="/roomInfo">房间信息</el-menu-item>
+        <el-menu-item v-if="judgeIdentity()!==0" index="/utilityInfo">水电管理</el-menu-item>
       </el-sub-menu>
 
       <el-sub-menu v-if="judgeIdentity()!==0" index="4">
@@ -66,6 +67,11 @@
       <el-menu-item v-if="judgeIdentity()!==0" index="/visitorInfo" class="nav-item">
         <el-icon><user-filled/></el-icon>
         <template #title>访客管理</template>
+      </el-menu-item>
+
+      <el-menu-item v-if="judgeIdentity()!==0" index="/accessInfo" class="nav-item">
+        <el-icon><connection/></el-icon>
+        <template #title>出入管理</template>
       </el-menu-item>
 
       <!-- student menu -->
@@ -149,26 +155,35 @@ export default {
   z-index: 2;
 }
 
+.sidebar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.04));
+  pointer-events: none;
+}
+
 /* —— brand —— */
 .sidebar-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 22px 20px 20px;
-  border-bottom: 1px solid rgba(255,255,255,.06);
+  gap: 10px;
+  padding: 16px 14px 14px;
+  border-bottom: 1px solid rgba(71,158,170,.16);
   margin-bottom: 4px;
+  position: relative;
 }
 
 .brand-icon {
   width: 34px;
   height: 34px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, var(--accent), #d4896e);
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-blue) 58%, var(--accent-peach));
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(196,93,62,.3);
+  box-shadow: 0 10px 24px rgba(35,183,164,.28);
 }
 
 .brand-icon img {
@@ -183,18 +198,18 @@ export default {
 }
 
 .brand-name {
-  color: rgba(255,255,255,.9);
+  color: #17323a;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 15px;
-  letter-spacing: .5px;
+  font-size: 14px;
+  letter-spacing: 0;
   line-height: 1.3;
 }
 
 .brand-sub {
-  color: rgba(255,255,255,.3);
+  color: rgba(23,50,58,.56);
   font-size: 10px;
-  letter-spacing: 1.5px;
+  letter-spacing: 0;
   text-transform: uppercase;
   font-weight: 500;
 }
@@ -202,40 +217,42 @@ export default {
 /* —— nav —— */
 .sidebar-nav {
   flex: 1;
-  padding: 4px 10px;
+  padding: 6px 10px;
   overflow-y: auto;
 }
 
 .nav-label {
-  padding: 20px 16px 6px;
+  padding: 16px 12px 5px;
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 2px;
+  letter-spacing: 0;
   text-transform: uppercase;
-  color: rgba(255,255,255,.2);
+  color: rgba(23,50,58,.45);
 }
 
 /* menu items */
 .sidebar-nav :deep(.el-menu-item),
 .sidebar-nav :deep(.el-sub-menu__title) {
-  height: 42px;
-  line-height: 42px;
+  height: 34px;
+  line-height: 34px;
   margin: 1px 0;
-  border-radius: var(--r-sm);
+  border-radius: 8px;
   transition: all .2s var(--ease);
-  font-size: 13px;
+  font-size: 12px;
+  color: rgba(23,50,58,.72) !important;
 }
 
 .sidebar-nav :deep(.el-menu-item:hover),
 .sidebar-nav :deep(.el-sub-menu__title:hover) {
-  background: var(--sidebar-hover) !important;
-  color: rgba(255,255,255,.9) !important;
+  background: rgba(35,183,164,.13) !important;
+  color: #17323a !important;
 }
 
 .sidebar-nav :deep(.el-menu-item.is-active) {
-  background: var(--sidebar-active) !important;
-  color: #e8a88a !important;
+  background: rgba(35,183,164,.24) !important;
+  color: #0b756a !important;
   font-weight: 600;
+  box-shadow: inset 0 0 0 1px rgba(35,183,164,.12), 0 8px 18px rgba(35,183,164,.14);
 }
 
 /* active indicator bar */
@@ -257,11 +274,11 @@ export default {
 }
 
 .sidebar-nav :deep(.el-sub-menu .el-menu-item) {
-  height: 38px;
-  line-height: 38px;
-  padding-left: 52px !important;
-  font-size: 13px;
-  margin: 1px 8px;
+  height: 32px;
+  line-height: 32px;
+  padding-left: 40px !important;
+  font-size: 12px;
+  margin: 1px 4px;
 }
 
 .sidebar-nav :deep(.el-sub-menu .el-menu-item.is-active) {

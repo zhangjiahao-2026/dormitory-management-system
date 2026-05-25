@@ -457,13 +457,14 @@ export default {
   /*height: 440px;*/
   display: inline;
   text-align: center;
+  color: var(--text-body);
 }
 
 .header {
   padding: 0 5px;
   font-size: 18px;
-  font-weight: 500;
-  color: #2b4450;
+  font-weight: 700;
+  color: var(--text-title);
   line-height: 44px;
   margin: 0 calc((14.285% - 40px) / 2 + 6px);
 }
@@ -477,9 +478,10 @@ export default {
 }
 
 .selected .calendar-item {
-  background: #2b4450;
+  background: linear-gradient(135deg, var(--accent), var(--accent-blue));
   border-radius: 50%;
   color: #fff;
+  box-shadow: 0 8px 16px rgba(35,183,164,.24);
 }
 
 .week-area {
@@ -497,7 +499,7 @@ export default {
 
 .week-font {
   font-size: 15px;
-  color: #2b4450;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
@@ -526,13 +528,13 @@ export default {
 }
 
 .data-font {
-  color: #2b4450;
+  color: var(--text-body);
   font-size: 18px;
   font-weight: 400;
 }
 
 .other-item .data-font {
-  color: #ccc;
+  color: var(--text-placeholder);
 }
 
 .touch-area {
@@ -556,7 +558,7 @@ export default {
 .touch-item {
   width: 40px;
   height: 5px;
-  background: #2b4450;
+  background: var(--accent);
   border-radius: 100px;
   opacity: 0.6;
 }

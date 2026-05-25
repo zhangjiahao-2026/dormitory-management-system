@@ -137,8 +137,13 @@ export default {
     methods: {
         //获取个人信息页面信息
         load() {
-            this.form = JSON.parse(sessionStorage.getItem("user"));
-            this.identity = JSON.parse(sessionStorage.getItem("identity"));
+            const userStr = sessionStorage.getItem("user");
+            const identityStr = sessionStorage.getItem("identity");
+            if (!userStr || userStr === "null") {
+                return;
+            }
+            this.form = JSON.parse(userStr);
+            this.identity = identityStr ? JSON.parse(identityStr) : "";
             this.username = this.form.username;
             this.name = this.form.name;
             this.gender = this.form.gender;
@@ -149,12 +154,12 @@ export default {
         },
         //查询数据，更新session
         find() {
-            this.form = JSON.parse(sessionStorage.getItem("user"));
-            request.post("/" + this.identity + "/login", this.form).then((res) => {
-                //更新sessionStorage
-                window.sessionStorage.setItem("user", JSON.stringify(res.data));
-                //更新页面数据
-                this.load();
+            request.get("/main/loadUserInfo").then((res) => {
+                if (res.code === "0") {
+                    window.sessionStorage.setItem("user", JSON.stringify(res.data));
+                    this.load();
+                    this.init(this.avatar);
+                }
             });
         },
         Edit() {

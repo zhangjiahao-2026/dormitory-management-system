@@ -7,7 +7,8 @@ const request = axios.create({
 
 // request 拦截器 —— 挂在 request 实例上，而非全局 axios
 request.interceptors.request.use(function (config) {
-    let user = JSON.parse(window.sessionStorage.getItem('user'));
+    const userStr = window.sessionStorage.getItem('user');
+    let user = userStr && userStr !== 'null' ? JSON.parse(userStr) : null;
     if (user) {
         config.headers['token'] = user.token || '';
     }

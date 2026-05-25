@@ -1,5 +1,5 @@
 <template>
-  <div id="echarts-dom" style="width: 650px;height: 500px"></div>
+  <div id="echarts-dom" class="home-chart"></div>
 </template>
 
 <script>
@@ -13,22 +13,61 @@ export default {
   data() {
     return {
       option: {
-        barWidth: 35,
-        tooltip: {},
+        color: ['#23b7a4'],
+        barWidth: 34,
+        tooltip: {
+          backgroundColor: 'rgba(23,50,58,.92)',
+          borderWidth: 0,
+          textStyle: {
+            color: '#ffffff'
+          }
+        },
         xAxis: {
-          data: []
+          data: [],
+          axisLine: {
+            lineStyle: {
+              color: '#d7ecea'
+            }
+          },
+          axisLabel: {
+            color: '#78909a'
+          }
         },
         yAxis: {
           type: "value",
           min: 0,
           minInterval: 1,
-          interval: 1
+          interval: 1,
+          splitLine: {
+            lineStyle: {
+              color: '#e7f4f1',
+              type: 'dashed'
+            }
+          },
+          axisLabel: {
+            color: '#78909a'
+          }
         },
         series: [
           {
             name: '人数',
             type: 'bar',
-            data: []
+            data: [],
+            itemStyle: {
+              borderRadius: [8, 8, 0, 0],
+              color: {
+                type: 'linear',
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                  { offset: 0, color: '#5aa7ff' },
+                  { offset: .55, color: '#23b7a4' },
+                  { offset: 1, color: '#a7df73' }
+                ]
+              }
+            }
           },
         ],
         grid: {
@@ -95,5 +134,9 @@ export default {
 </script>
 
 <style scoped>
-
+.home-chart {
+  width: 100%;
+  min-width: 320px;
+  height: 500px;
+}
 </style>

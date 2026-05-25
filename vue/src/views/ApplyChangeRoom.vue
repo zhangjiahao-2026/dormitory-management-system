@@ -1,172 +1,127 @@
 <template>
-  <div>
-    <el-breadcrumb separator-icon="ArrowRight" style="margin: 16px">
-      <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>申请管理</el-breadcrumb-item>
-      <el-breadcrumb-item>调宿申请</el-breadcrumb-item>
+  <div class="student-page">
+    <el-breadcrumb separator-icon="ArrowRight" class="page-breadcrumb">
+      <el-breadcrumb-item>申请调宿</el-breadcrumb-item>
     </el-breadcrumb>
-    <el-card style="margin: 15px; min-height: calc(100vh - 111px)">
-      <div>
-        <!--    功能区-->
-        <div style="margin: 10px 0">
-          <!--    搜索区-->
-          <div style="margin: 10px 0">
-            <el-input v-model="search" clearable placeholder="请输入学号" prefix-icon="Search" style="width: 20%"/>
-            <el-button icon="Search" style="margin-left: 5px" type="primary" @click="load"></el-button>
-            <div style="float: right">
-              <el-tooltip content="添加" placement="top">
-                <el-button icon="plus" style="width: 50px" type="primary" @click="add"></el-button>
-              </el-tooltip>
-            </div>
-          </div>
-        </div>
-        <!--    表格-->
-        <el-table v-loading="loading" :data="tableData" border max-height="705" style="width: 100%">
-          <el-table-column label="#" type="index"/>
-          <el-table-column label="学号" prop="username" sortable width="100px"/>
-          <el-table-column label="姓名" prop="name" width="100px"/>
-          <el-table-column label="当前房间号" prop="currentRoomId" sortable/>
-          <el-table-column label="当前床位号" prop="currentBedId" sortable/>
-          <el-table-column label="目标房间号" prop="towardsRoomId" sortable/>
-          <el-table-column label="目标床位号" prop="towardsBedId" sortable/>
-          <el-table-column
-              :filter-method="filterTag"
-              :filters="[
-              { text: '未处理', value: '未处理' },
-              { text: '通过', value: '通过' },
-              { text: '驳回', value: '驳回' },
-            ]"
-              filter-placement="bottom-end"
-              label="申请状态"
-              prop="state"
-              sortable
-              width="130px"
-          >
-            <template #default="scope">
-              <el-tag :type="scope.row.state === '通过' ? 'success' : (scope.row.state === '驳回' ? 'danger' : 'info')"
-                      disable-transitions
-              >{{ scope.row.state }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="申请时间" prop="applyTime" sortable/>
-          <el-table-column label="处理时间" prop="finishTime" sortable/>
-          <!--      操作栏-->
-          <el-table-column label="操作" width="130px">
-            <template #default="scope">
-              <el-button icon="more-filled" type="default" @click="showDetail(scope.row)"></el-button>
-              <el-button v-if="scope.row.state!=='通过' " icon="Edit" type="primary"
-                         @click="handleEdit(scope.row)"></el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-        <!--分页-->
-        <div style="margin: 10px 0">
-          <el-pagination
-              v-model:currentPage="currentPage"
-              :page-size="pageSize"
-              :page-sizes="[10, 20]"
-              :total="total"
-              layout="total, sizes, prev, pager, next, jumper"
-              @size-change="handleSizeChange"
-              @current-change="handleCurrentChange"
-          >
-          </el-pagination>
-        </div>
+
+    <el-card class="form-card">
+      <div class="form-heading">
         <div>
-          <!--      弹窗-->
-          <el-dialog v-model="dialogVisible" title="操作" width="30%" @close="cancel">
-            <el-form ref="form" :model="form" :rules="rules" label-width="120px">
-              <el-form-item label="学号" prop="username">
-                <el-input v-model="form.username" disabled style="width: 80%"></el-input>
-              </el-form-item>
-              <el-form-item label="姓名" prop="name">
-                <el-input v-model="form.name" disabled style="width: 80%"></el-input>
-              </el-form-item>
-              <el-form-item disabled label="当前房间号" prop="currentRoomId">
-                <el-input v-model="form.currentRoomId" disabled style="width: 80%"></el-input>
-              </el-form-item>
-              <el-form-item label="当前床位号" prop="currentBedId">
-                <el-input v-model="form.currentBedId" disabled style="width: 80%"></el-input>
-              </el-form-item>
-              <el-form-item label="目标房间号" prop="towardsRoomId">
-                <el-input v-model.number="form.towardsRoomId" style="width: 80%"></el-input>
-              </el-form-item>
-              <el-form-item label="目标床位号" prop="towardsBedId">
-                <el-input v-model.number="form.towardsBedId" style="width: 80%"></el-input>
-              </el-form-item>
-              <el-form-item label="申请时间" prop="applyTime" style="margin-top: 27px">
-                <el-date-picker
-                    v-model="form.applyTime"
-                    :disabled="!judgeOption"
-                    clearable
-                    placeholder="选择时间"
-                    style="width: 50%"
-                    type="datetime"
-                    value-format="YYYY-MM-DD HH:mm:ss"
-                ></el-date-picker>
-              </el-form-item>
-            </el-form>
-            <template #footer>
-              <span class="dialog-footer">
-                <el-button @click="cancel">取 消</el-button>
-                <el-button type="primary" @click="save">确 定</el-button>
-              </span>
-            </template>
-          </el-dialog>
-          <!--详情信息弹窗-->
-          <el-dialog v-model="detailDialog" title="学生信息" width="30%" @close="cancel">
-            <el-form ref="form" :model="form" label-width="220px">
-              <el-form-item label="学号：" prop="username">
-                <template #default="scope">
-                  <span>{{ form.username }}</span>
-                </template>
-              </el-form-item>
-              <el-form-item label="姓名：" prop="name">
-                <template #default="scope">
-                  <span>{{ form.name }}</span>
-                </template>
-              </el-form-item>
-              <el-form-item label="当前房间号：" prop="currentRoomId">
-                <template #default="scope">
-                  <span>{{ form.currentRoomId }}</span>
-                </template>
-              </el-form-item>
-              <el-form-item label="当前床位号：" prop="currentBedId">
-                <template #default="scope">
-                  <span>{{ form.currentBedId }}</span>
-                </template>
-              </el-form-item>
-              <el-form-item label="目标房间号：" prop="towardsRoomId">
-                <template #default="scope">
-                  <span>{{ form.towardsRoomId }}</span>
-                </template>
-              </el-form-item>
-              <el-form-item label="目标床位号：" prop="towardsBedId">
-                <template #default="scope">
-                  <span>{{ form.towardsBedId }}</span>
-                </template>
-              </el-form-item>
-              <el-form-item label="申请时间：" prop="applyTime">
-                <template #default="scope">
-                  <span>{{ form.applyTime }}</span>
-                </template>
-              </el-form-item>
-              <el-form-item label="申请状态：" prop="state">
-                <template #default="scope">
-                  <span>{{ form.state }}</span>
-                </template>
-              </el-form-item>
-              <el-form-item label="处理时间：" prop="finishTime">
-                <template #default="scope">
-                  <span>{{ form.finishTime }}</span>
-                </template>
-              </el-form-item>
-            </el-form>
-          </el-dialog>
+          <p class="eyebrow">换宿申请</p>
+          <h2>填写目标房间与床位</h2>
         </div>
+        <el-tag effect="light">待提交</el-tag>
       </div>
+
+      <el-form ref="form" :model="form" :rules="rules" label-width="112px" class="apply-form">
+        <div class="form-grid">
+          <el-form-item label="学号" prop="username">
+            <el-input v-model="form.username" disabled/>
+          </el-form-item>
+          <el-form-item label="姓名" prop="name">
+            <el-input v-model="form.name" disabled/>
+          </el-form-item>
+          <el-form-item label="当前房间号" prop="currentRoomId">
+            <el-input v-model="form.currentRoomId" disabled/>
+          </el-form-item>
+          <el-form-item label="当前床位号" prop="currentBedId">
+            <el-input v-model="form.currentBedId" disabled/>
+          </el-form-item>
+          <el-form-item label="目标房间号" prop="towardsRoomId">
+            <el-input v-model.number="form.towardsRoomId" clearable placeholder="请输入目标房间号"/>
+          </el-form-item>
+          <el-form-item label="目标床位号" prop="towardsBedId">
+            <el-input v-model.number="form.towardsBedId" clearable placeholder="请输入目标床位号"/>
+          </el-form-item>
+        </div>
+
+        <el-form-item label="申请时间" prop="applyTime">
+          <el-date-picker
+              v-model="form.applyTime"
+              clearable
+              placeholder="请选择申请时间"
+              type="datetime"
+              value-format="YYYY-MM-DD HH:mm:ss"
+          />
+        </el-form-item>
+
+        <div class="form-actions">
+          <el-button @click="resetApplyFields">重置</el-button>
+          <el-button type="primary" @click="save">提交申请</el-button>
+        </div>
+      </el-form>
     </el-card>
   </div>
 </template>
 <script src="@/assets/js/ApplyChangeRoom.js"></script>
+
+<style scoped>
+.student-page {
+  padding: 20px;
+}
+
+.page-breadcrumb {
+  margin-bottom: 16px;
+}
+
+.form-card {
+  min-height: calc(100vh - 120px);
+  border-radius: 8px;
+}
+
+.form-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(215, 236, 234, .86);
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.form-heading h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 24px;
+}
+
+.apply-form {
+  max-width: 820px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(240px, 1fr));
+  gap: 4px 18px;
+}
+
+.apply-form :deep(.el-date-editor.el-input) {
+  width: 100%;
+  max-width: 360px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  max-width: 820px;
+  padding-top: 8px;
+}
+
+@media (max-width: 760px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+</style>

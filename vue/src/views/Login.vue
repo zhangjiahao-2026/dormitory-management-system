@@ -215,6 +215,16 @@
   font-size: 14px;
 }
 
+.form-fields .el-input :deep(.el-input__prefix) {
+  align-items: center;
+}
+
+.form-fields .el-input :deep(.el-input__prefix .el-icon) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* role selector */
 .role-select {
   display: flex;

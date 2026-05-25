@@ -40,7 +40,7 @@ export default {
                             // 登陆成功跳转主页
                             window.sessionStorage.setItem("user", JSON.stringify(res.data));
                             window.sessionStorage.setItem("identity", JSON.stringify(this.form.identity));
-                            this.$router.replace({path: "/home"});
+                            this.$router.replace({path: this.form.identity === "stu" ? "/myRoomInfo" : "/home"});
                         } else {
                             ElMessage({
                                 message: res.msg,

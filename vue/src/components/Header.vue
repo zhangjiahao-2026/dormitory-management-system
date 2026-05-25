@@ -62,10 +62,14 @@ export default {
 }
 
 .hdr-clock {
-  font-size: 13px;
-  color: var(--text-muted);
+  font-size: 12px;
+  color: var(--text-body);
   font-variant-numeric: tabular-nums;
-  letter-spacing: .3px;
+  letter-spacing: 0;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.72);
+  box-shadow: inset 0 0 0 1px rgba(35,183,164,.10);
 }
 
 .hdr-right {
@@ -77,29 +81,33 @@ export default {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 14px 6px 8px;
-  border-radius: var(--r-md);
+  padding: 6px 13px 6px 8px;
+  border-radius: 999px;
   cursor: pointer;
   transition: all .2s var(--ease);
+  background: rgba(255,255,255,.68);
+  box-shadow: inset 0 0 0 1px rgba(35,183,164,.10);
 }
 
 .hdr-user:hover {
   background: var(--accent-light);
+  box-shadow: 0 8px 18px rgba(35,183,164,.12);
 }
 
 .hdr-avatar {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), #d4896e);
+  background: linear-gradient(135deg, var(--accent), var(--accent-blue));
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 8px 18px rgba(35,183,164,.22);
 }
 
 .hdr-name {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-body);
   font-weight: 500;
 }

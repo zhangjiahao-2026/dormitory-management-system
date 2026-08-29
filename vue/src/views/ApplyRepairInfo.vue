@@ -48,11 +48,82 @@
           />
         </el-form-item>
 
+        <el-alert
+            v-if="aiResult && aiResult.requires_human_review"
+            :closable="false"
+            class="ai-risk-alert"
+            show-icon
+            title="该申请需要宿管人工复核，AI 不会直接创建正式工单。"
+            type="warning"
+        />
+
+        <el-card v-if="aiResult" class="ai-analysis-card" shadow="never">
+          <template #header>
+            <div class="analysis-header">
+              <strong>AI 辅助分析</strong>
+              <el-tag :type="urgencyTag(aiResult.urgency)">{{ urgencyName(aiResult.urgency) }}</el-tag>
+            </div>
+          </template>
+          <el-descriptions :column="2" border>
+            <el-descriptions-item label="问题类别">{{ aiResult.category_name }}</el-descriptions-item>
+            <el-descriptions-item label="置信度">{{ confidencePercent(aiResult.confidence) }}</el-descriptions-item>
+            <el-descriptions-item label="建议部门">{{ aiResult.suggested_department_name || '待人工选择' }}</el-descriptions-item>
+            <el-descriptions-item label="分析状态">{{ aiResult.status }}</el-descriptions-item>
+          </el-descriptions>
+          <div class="analysis-section">
+            <h4>处理建议</h4>
+            <ol v-if="aiResult.recommended_actions && aiResult.recommended_actions.length">
+              <li v-for="action in aiResult.recommended_actions" :key="action">{{ action }}</li>
+            </ol>
+            <el-empty v-else :image-size="56" description="缺少可靠 SOP 依据，已转人工处理"/>
+          </div>
+          <div v-if="aiResult.review_reasons && aiResult.review_reasons.length" class="analysis-section">
+            <h4>复核原因</h4>
+            <el-tag v-for="reason in aiResult.review_reasons" :key="reason" class="reason-tag" type="danger">
+              {{ reason }}
+            </el-tag>
+          </div>
+          <div class="analysis-section">
+            <h4>SOP 来源</h4>
+            <el-table v-if="aiResult.sources && aiResult.sources.length" :data="aiResult.sources" size="small">
+              <el-table-column label="文档" prop="document"/>
+              <el-table-column label="章节" prop="section"/>
+              <el-table-column label="相关度" width="100">
+                <template #default="scope">{{ confidencePercent(scope.row.score) }}</template>
+              </el-table-column>
+            </el-table>
+            <span v-else class="muted-text">没有检索到可引用的 SOP。</span>
+          </div>
+        </el-card>
+
         <div class="form-actions">
           <el-button @click="resetApplyFields">重置</el-button>
-          <el-button type="primary" @click="save">提交报修</el-button>
+          <el-button :loading="aiLoading" type="primary" @click="analyzeAndSubmit">AI 分析并提交审核</el-button>
+          <el-button :loading="manualLoading" type="success" plain @click="save">直接提交人工报修</el-button>
         </div>
       </el-form>
+    </el-card>
+
+    <el-card class="history-card">
+      <template #header>
+        <div class="analysis-header">
+          <strong>我的 AI 报修申请</strong>
+          <el-button text type="primary" @click="loadMine">刷新</el-button>
+        </div>
+      </template>
+      <el-table :data="myRequests" empty-text="暂无 AI 报修申请">
+        <el-table-column label="提交时间" prop="createdAt" width="170"/>
+        <el-table-column label="标题" prop="title"/>
+        <el-table-column label="类别" prop="category" width="150"/>
+        <el-table-column label="紧急程度" prop="urgency" width="130"/>
+        <el-table-column label="状态" width="120">
+          <template #default="scope">
+            <el-tag :type="requestStatusType(scope.row.status)">{{ requestStatusName(scope.row.status) }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="工单号" prop="repairId" width="100"/>
+        <el-table-column label="审核备注" prop="operatorComment"/>
+      </el-table>
     </el-card>
   </div>
 </template>
@@ -116,6 +187,40 @@
   gap: 10px;
   max-width: 820px;
   padding-top: 8px;
+}
+
+.ai-risk-alert,
+.ai-analysis-card,
+.history-card {
+  margin-top: 18px;
+}
+
+.analysis-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.analysis-section {
+  margin-top: 18px;
+}
+
+.analysis-section h4 {
+  margin: 0 0 10px;
+}
+
+.analysis-section ol {
+  margin: 0;
+  padding-left: 22px;
+  line-height: 1.8;
+}
+
+.reason-tag {
+  margin: 0 8px 8px 0;
+}
+
+.muted-text {
+  color: var(--text-secondary);
 }
 
 @media (max-width: 760px) {

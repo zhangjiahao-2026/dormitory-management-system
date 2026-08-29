@@ -5,6 +5,46 @@
       <el-breadcrumb-item>信息管理</el-breadcrumb-item>
       <el-breadcrumb-item>报修信息</el-breadcrumb-item>
     </el-breadcrumb>
+    <el-card class="ai-review-card">
+      <template #header>
+        <div class="ai-panel-header">
+          <div>
+            <strong>AI 报修待审核</strong>
+            <span class="ai-panel-tip">AI 仅提供辅助分析，确认后才创建正式工单</span>
+          </div>
+          <el-button :loading="aiLoading" type="primary" plain @click="loadAiPending">刷新</el-button>
+        </div>
+      </template>
+      <div class="ai-search-row">
+        <el-input v-model="aiSearch" clearable placeholder="搜索标题或问题描述" @keyup.enter="loadAiPending"/>
+        <el-button icon="Search" type="primary" @click="loadAiPending">查询</el-button>
+      </div>
+      <el-table v-loading="aiLoading" :data="aiPending" empty-text="暂无待审核 AI 申请">
+        <el-table-column label="提交时间" prop="createdAt" width="165"/>
+        <el-table-column label="楼栋" prop="dormBuildId" width="80"/>
+        <el-table-column label="房间" prop="dormRoomId" width="80"/>
+        <el-table-column label="申请人" prop="applicantName" width="100"/>
+        <el-table-column label="标题" prop="title"/>
+        <el-table-column label="AI 类别" prop="category" width="145"/>
+        <el-table-column label="紧急程度" prop="urgency" width="110"/>
+        <el-table-column label="置信度" width="90">
+          <template #default="scope">{{ confidencePercent(scope.row.confidence) }}</template>
+        </el-table-column>
+        <el-table-column label="操作" width="110">
+          <template #default="scope">
+            <el-button size="small" type="primary" @click="openAiReview(scope.row)">审核</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-pagination
+          v-if="aiTotal > aiPageSize"
+          v-model:currentPage="aiPageNum"
+          :page-size="aiPageSize"
+          :total="aiTotal"
+          layout="total, prev, pager, next"
+          @current-change="loadAiPending"
+      />
+    </el-card>
     <el-card style="margin: 15px; min-height: calc(100vh - 111px)">
       <div>
         <!--    功能区-->
@@ -147,9 +187,99 @@
               </span>
             </template>
           </el-dialog>
+          <el-dialog v-model="aiDialog" title="AI 报修人工审核" width="720px">
+            <template v-if="aiDetail.requestId">
+              <el-alert
+                  v-if="parseJson(aiDetail.reviewReasons).length"
+                  :closable="false"
+                  show-icon
+                  title="该分析存在需要人工确认的风险"
+                  type="warning"
+              />
+              <el-descriptions :column="2" border class="ai-detail-block">
+                <el-descriptions-item label="宿舍">{{ aiDetail.dormBuildId }} 栋 {{ aiDetail.dormRoomId }}</el-descriptions-item>
+                <el-descriptions-item label="申请人">{{ aiDetail.applicantName }}</el-descriptions-item>
+                <el-descriptions-item label="标题">{{ aiDetail.title }}</el-descriptions-item>
+                <el-descriptions-item label="置信度">{{ confidencePercent(aiDetail.confidence) }}</el-descriptions-item>
+                <el-descriptions-item :span="2" label="问题描述">{{ aiDetail.content }}</el-descriptions-item>
+              </el-descriptions>
+              <div class="ai-detail-block">
+                <strong>处理建议</strong>
+                <ol><li v-for="item in parseJson(aiDetail.recommendedActions)" :key="item">{{ item }}</li></ol>
+              </div>
+              <div class="ai-detail-block">
+                <strong>SOP 来源</strong>
+                <el-table :data="parseJson(aiDetail.sources)" size="small">
+                  <el-table-column label="文档" prop="document"/>
+                  <el-table-column label="章节" prop="section"/>
+                  <el-table-column label="相关度" width="90">
+                    <template #default="scope">{{ confidencePercent(scope.row.score) }}</template>
+                  </el-table-column>
+                </el-table>
+              </div>
+              <el-form :model="aiDecision" label-width="100px">
+                <el-form-item label="确认类别">
+                  <el-select v-model="aiDecision.category" style="width: 100%">
+                    <el-option v-for="item in categoryOptions" :key="item.value" :label="item.label" :value="item.value"/>
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="紧急程度">
+                  <el-select v-model="aiDecision.urgency" style="width: 100%">
+                    <el-option v-for="item in urgencyOptions" :key="item.value" :label="item.label" :value="item.value"/>
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="处理部门">
+                  <el-select v-model="aiDecision.department" style="width: 100%">
+                    <el-option v-for="item in departmentOptions" :key="item.value" :label="item.label" :value="item.value"/>
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="审核备注">
+                  <el-input v-model="aiDecision.operatorComment" :rows="3" maxlength="500" show-word-limit type="textarea"/>
+                </el-form-item>
+              </el-form>
+            </template>
+            <template #footer>
+              <el-button type="danger" plain @click="rejectAi">拒绝申请</el-button>
+              <el-button @click="aiDialog = false">取消</el-button>
+              <el-button :loading="aiSubmitting" type="primary" @click="confirmAi">确认创建工单</el-button>
+            </template>
+          </el-dialog>
         </div>
       </div>
     </el-card>
   </div>
 </template>
 <script src="@/assets/js/RepairInfo.js"></script>
+
+<style scoped>
+.ai-review-card {
+  margin: 15px;
+}
+
+.ai-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ai-panel-tip {
+  margin-left: 12px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.ai-search-row {
+  display: flex;
+  gap: 8px;
+  width: 420px;
+  margin-bottom: 12px;
+}
+
+.ai-detail-block {
+  margin-top: 16px;
+}
+
+.ai-detail-block ol {
+  line-height: 1.8;
+}
+</style>

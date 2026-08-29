@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import re
 from typing import Iterable, List
 
 from app.schemas.ticket import ClassificationResult
@@ -53,6 +54,16 @@ class RiskEngine:
             result.add("SOP 检索相关度不足")
         if classification.department is None:
             result.add("无法映射到有效处理部门")
-        if any(danger in action for action in actions for danger in DANGEROUS_ACTIONS):
+        if any(self._contains_unsafe_instruction(action) for action in actions):
             result.add("处理建议包含危险操作")
         return result
+
+    @staticmethod
+    def _contains_unsafe_instruction(action: str) -> bool:
+        for danger in DANGEROUS_ACTIONS:
+            if danger not in action:
+                continue
+            prohibited = re.search(rf"(?:禁止|不得|严禁|不要)[^。；;]{{0,40}}{re.escape(danger)}", action)
+            if prohibited is None:
+                return True
+        return False

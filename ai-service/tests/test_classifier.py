@@ -25,6 +25,12 @@ def test_unknown_problem_requests_more_information():
     assert result.confidence < 0.75
 
 
+def test_cross_category_tie_requests_clarification():
+    result = LocalRuleClassifier().classify("不确定是空调还是水管出现问题")
+    assert result.need_more_information is True
+    assert result.confidence < 0.75
+
+
 def test_invalid_model_enum_is_rejected():
     payload = {
         "category": "MAGIC",

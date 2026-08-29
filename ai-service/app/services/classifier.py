@@ -45,6 +45,7 @@ class LocalRuleClassifier:
         }
         best_rule = max(scores, key=scores.get) if scores else None
         best_score = scores.get(best_rule, 0) if best_rule else 0
+        tied_categories = [rule.category for rule, score in scores.items() if score == best_score and score > 0]
         emergency = matched_emergency_keywords(text)
 
         if best_rule is None or best_score == 0:
@@ -71,6 +72,9 @@ class LocalRuleClassifier:
         urgency = self._urgency(text, best_rule.category, bool(emergency))
         confidence = min(0.96, 0.7 + best_score * 0.1 + (0.08 if emergency else 0.0))
         missing = [] if len(text) >= 6 else ["请补充故障发生位置和现象"]
+        if len(tied_categories) > 1:
+            confidence = min(confidence, 0.68)
+            missing = ["描述同时涉及多个故障类别，请确认主要故障设施"]
         return ClassificationResult(
             category=best_rule.category,
             urgency=urgency,

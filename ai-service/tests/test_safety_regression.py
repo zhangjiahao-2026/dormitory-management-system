@@ -54,6 +54,20 @@ def test_dangerous_generated_action_forces_review():
     assert "处理建议包含危险操作" in result.reasons
 
 
+def test_prohibition_of_dangerous_action_is_not_a_dangerous_suggestion():
+    classification = LocalRuleClassifier().classify("宿舍插座没有电")
+    result = RiskEngine().post_check(
+        classification=classification,
+        actions=["禁止恢复供电或自行拆卸插座"],
+        has_evidence=True,
+        retrieval_score=0.9,
+        confidence_threshold=0.75,
+        retrieval_threshold=0.18,
+        pre_risk=RiskResult(),
+    )
+    assert "处理建议包含危险操作" not in result.reasons
+
+
 def test_llm_timeout_retries_then_returns_none():
     client = TimeoutClient()
     llm = OpenAiCompatibleLlmClient("key", "https://example.com", "model", client=client)

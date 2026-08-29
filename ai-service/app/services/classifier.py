@@ -28,7 +28,12 @@ CATEGORY_RULES = (
 
 
 def matched_emergency_keywords(description: str) -> list[str]:
-    return [keyword for keyword in EMERGENCY_KEYWORDS if keyword in description]
+    matched = [keyword for keyword in EMERGENCY_KEYWORDS if keyword in description]
+    water_risk = any(keyword in description for keyword in ("漏水", "积水", "水流", "滴水"))
+    electrical_risk = any(keyword in description for keyword in ("插座", "电线", "配电", "电器"))
+    if water_risk and electrical_risk:
+        matched.append("水接近电气设施")
+    return matched
 
 
 class LocalRuleClassifier:
@@ -43,6 +48,16 @@ class LocalRuleClassifier:
         emergency = matched_emergency_keywords(text)
 
         if best_rule is None or best_score == 0:
+            if emergency:
+                return ClassificationResult(
+                    category=RepairCategory.OTHER,
+                    urgency=Urgency.EMERGENCY,
+                    confidence=0.82,
+                    need_more_information=True,
+                    missing_information=["请补充危险源和具体位置"],
+                    reason="描述包含高风险信息，但无法确定具体维修类别",
+                    department=Department.CAMPUS_EMERGENCY,
+                )
             return ClassificationResult(
                 category=RepairCategory.OTHER,
                 urgency=Urgency.LOW,

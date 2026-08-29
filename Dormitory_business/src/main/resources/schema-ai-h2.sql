@@ -1,3 +1,7 @@
+-- The local base schema predates database-generated repair IDs. MyBatis omits
+-- AUTO ids on insert, so align H2 with the production repair table behavior.
+ALTER TABLE repair ALTER COLUMN id INT AUTO_INCREMENT;
+
 ALTER TABLE repair ADD COLUMN IF NOT EXISTS ai_request_id VARCHAR(64);
 ALTER TABLE repair ADD COLUMN IF NOT EXISTS ai_assisted INT NOT NULL DEFAULT 0;
 ALTER TABLE repair ADD COLUMN IF NOT EXISTS ai_category VARCHAR(32);

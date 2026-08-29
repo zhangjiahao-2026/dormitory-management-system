@@ -68,3 +68,48 @@ class ClassificationResult(BaseModel):
         if not value:
             raise ValueError("missing information cannot be empty")
         return value[:100]
+
+
+class AnalyzeStatus(str, Enum):
+    NEED_REVIEW = "NEED_REVIEW"
+    READY_FOR_CONFIRMATION = "READY_FOR_CONFIRMATION"
+
+
+class TicketAnalyzeRequest(BaseModel):
+    building: str = Field(min_length=1, max_length=30)
+    room: str = Field(min_length=1, max_length=30)
+    description: str = Field(min_length=4, max_length=2000)
+    user_id: Optional[str] = Field(default=None, max_length=64)
+
+    @validator("building", "room", "description")
+    def strip_required_text(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("value cannot be blank")
+        return value
+
+
+class SopSource(BaseModel):
+    document: str
+    section: str
+    chunk_id: str
+    score: float = Field(ge=0.0, le=1.0)
+
+
+class TicketAnalyzeResponse(BaseModel):
+    request_id: str
+    category: RepairCategory
+    category_name: str
+    urgency: Urgency
+    confidence: float = Field(ge=0.0, le=1.0)
+    suggested_department: Optional[Department]
+    suggested_department_name: Optional[str]
+    recommended_actions: List[str]
+    requires_human_review: bool
+    review_reasons: List[str]
+    sources: List[SopSource]
+    status: AnalyzeStatus
+    need_more_information: bool = False
+    missing_information: List[str] = Field(default_factory=list)
+    prompt_version: str = "ticket_classification_v1"
+    model_name: str = "local-rules"

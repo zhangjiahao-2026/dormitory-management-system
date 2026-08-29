@@ -57,6 +57,7 @@ export default {
             aiDialog: false,
             aiDetail: {},
             aiDecision: {},
+            metrics: {},
             categoryOptions: [
                 {value: "ELECTRICAL", label: "电路故障"},
                 {value: "PLUMBING", label: "给排水故障"},
@@ -85,6 +86,7 @@ export default {
     created() {
         this.load();
         this.loadAiPending();
+        this.loadMetrics();
         this.loading = true;
         setTimeout(() => {
             //设置延迟执行
@@ -306,6 +308,14 @@ export default {
         },
         confidencePercent(value) {
             return `${Math.round((Number(value) || 0) * 100)}%`;
+        },
+        loadMetrics() {
+            request.get("/repair/ai/metrics").then((res) => {
+                if (res.code === "0") this.metrics = res.data || {};
+            });
+        },
+        metricPercent(value) {
+            return Math.round((Number(value) || 0) * 1000) / 10;
         },
     },
 };

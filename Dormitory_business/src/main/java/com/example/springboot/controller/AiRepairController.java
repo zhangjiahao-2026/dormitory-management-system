@@ -5,6 +5,7 @@ import com.example.springboot.service.AiRepairService;
 import com.example.springboot.service.dto.AiRepairAnalyzeRequest;
 import com.example.springboot.service.dto.AiRepairConfirmRequest;
 import com.example.springboot.service.dto.AiRepairRejectRequest;
+import com.example.springboot.service.dto.AiRepairFeedbackRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -72,6 +73,25 @@ public class AiRepairController {
             aiRepairService.reject(requestId, request.getReason(), session);
             return Result.success();
         } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
+            return Result.error("-1", e.getMessage());
+        }
+    }
+
+    @PostMapping("/feedback")
+    public Result<?> feedback(@Valid @RequestBody AiRepairFeedbackRequest request, HttpSession session) {
+        try {
+            aiRepairService.feedback(request, session);
+            return Result.success();
+        } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
+            return Result.error("-1", e.getMessage());
+        }
+    }
+
+    @GetMapping("/metrics")
+    public Result<?> metrics(HttpSession session) {
+        try {
+            return Result.success(aiRepairService.metrics(session));
+        } catch (IllegalStateException | SecurityException e) {
             return Result.error("-1", e.getMessage());
         }
     }

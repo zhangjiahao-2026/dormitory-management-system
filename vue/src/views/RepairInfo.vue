@@ -15,6 +15,14 @@
           <el-button :loading="aiLoading" type="primary" plain @click="loadAiPending">刷新</el-button>
         </div>
       </template>
+      <el-row :gutter="12" class="metrics-row">
+        <el-col :span="4"><el-statistic title="分析请求" :value="metrics.totalRequests || 0"/></el-col>
+        <el-col :span="4"><el-statistic title="成功率" :value="metricPercent(metrics.successRate)" suffix="%"/></el-col>
+        <el-col :span="4"><el-statistic title="平均延迟" :value="metrics.averageLatencyMs || 0" suffix="ms"/></el-col>
+        <el-col :span="4"><el-statistic title="结构化输出" :value="metricPercent(metrics.structuredOutputRate)" suffix="%"/></el-col>
+        <el-col :span="4"><el-statistic title="人工复核" :value="metricPercent(metrics.humanReviewRate)" suffix="%"/></el-col>
+        <el-col :span="4"><el-statistic title="正向反馈" :value="metricPercent(metrics.positiveFeedbackRate)" suffix="%"/></el-col>
+      </el-row>
       <div class="ai-search-row">
         <el-input v-model="aiSearch" clearable placeholder="搜索标题或问题描述" @keyup.enter="loadAiPending"/>
         <el-button icon="Search" type="primary" @click="loadAiPending">查询</el-button>
@@ -273,6 +281,10 @@
   gap: 8px;
   width: 420px;
   margin-bottom: 12px;
+}
+
+.metrics-row {
+  margin-bottom: 18px;
 }
 
 .ai-detail-block {

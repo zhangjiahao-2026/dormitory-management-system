@@ -12,6 +12,26 @@ export default {
             manualLoading: false,
             aiResult: null,
             myRequests: [],
+            feedbackDialog: false,
+            feedbackForm: {},
+            feedbackReasons: [
+                {value: "CLASSIFICATION_ERROR", label: "分类错误"},
+                {value: "URGENCY_ERROR", label: "紧急程度错误"},
+                {value: "RETRIEVAL_ERROR", label: "SOP 检索错误"},
+                {value: "UNSUPPORTED_ANSWER", label: "回答缺少依据"},
+                {value: "UNCLEAR_EXPLANATION", label: "解释不清楚"},
+                {value: "OTHER", label: "其他"},
+            ],
+            categoryOptions: [
+                {value: "ELECTRICAL", label: "电路故障"},
+                {value: "PLUMBING", label: "给排水故障"},
+                {value: "NETWORK", label: "网络故障"},
+                {value: "DOOR_LOCK", label: "门锁故障"},
+                {value: "AIR_CONDITIONER", label: "空调故障"},
+                {value: "FURNITURE", label: "家具设施"},
+                {value: "PUBLIC_AREA", label: "公共区域"},
+                {value: "OTHER", label: "其他"},
+            ],
             form: {
                 dormBuildId: "",
                 dormRoomId: "",
@@ -122,6 +142,32 @@ export default {
         },
         requestStatusType(value) {
             return {PENDING_REVIEW: "warning", CONFIRMED: "success", REJECTED: "danger"}[value] || "info";
+        },
+        submitFeedback(requestId, rating) {
+            request.post("/repair/ai/feedback", {request_id: requestId, rating}).then((res) => {
+                ElMessage({
+                    message: res.code === "0" ? "感谢反馈" : res.msg,
+                    type: res.code === "0" ? "success" : "error",
+                });
+            });
+        },
+        openDownFeedback(requestId) {
+            this.feedbackForm = {request_id: requestId, rating: "DOWN", reason: "", expected_category: "", comment: ""};
+            this.feedbackDialog = true;
+        },
+        submitDownFeedback() {
+            if (!this.feedbackForm.reason) {
+                ElMessage({message: "请选择错误类型", type: "warning"});
+                return;
+            }
+            request.post("/repair/ai/feedback", this.feedbackForm).then((res) => {
+                if (res.code === "0") {
+                    ElMessage({message: "感谢反馈，我们会据此改进", type: "success"});
+                    this.feedbackDialog = false;
+                } else {
+                    ElMessage({message: res.msg, type: "error"});
+                }
+            });
         },
     },
 };

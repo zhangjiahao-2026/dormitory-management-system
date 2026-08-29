@@ -94,6 +94,11 @@
             </el-table>
             <span v-else class="muted-text">没有检索到可引用的 SOP。</span>
           </div>
+          <div class="analysis-feedback">
+            <span>这次分析有帮助吗？</span>
+            <el-button text type="success" @click="submitFeedback(aiResult.request_id, 'UP')">👍 有帮助</el-button>
+            <el-button text type="danger" @click="openDownFeedback(aiResult.request_id)">👎 需改进</el-button>
+          </div>
         </el-card>
 
         <div class="form-actions">
@@ -123,8 +128,36 @@
         </el-table-column>
         <el-table-column label="工单号" prop="repairId" width="100"/>
         <el-table-column label="审核备注" prop="operatorComment"/>
+        <el-table-column label="反馈" width="150">
+          <template #default="scope">
+            <el-button text type="success" @click="submitFeedback(scope.row.requestId, 'UP')">赞</el-button>
+            <el-button text type="danger" @click="openDownFeedback(scope.row.requestId)">踩</el-button>
+          </template>
+        </el-table-column>
       </el-table>
     </el-card>
+
+    <el-dialog v-model="feedbackDialog" title="反馈 AI 分析问题" width="480px">
+      <el-form label-width="90px">
+        <el-form-item label="错误类型" required>
+          <el-select v-model="feedbackForm.reason" style="width: 100%">
+            <el-option v-for="item in feedbackReasons" :key="item.value" :label="item.label" :value="item.value"/>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="预期类别">
+          <el-select v-model="feedbackForm.expected_category" clearable style="width: 100%">
+            <el-option v-for="item in categoryOptions" :key="item.value" :label="item.label" :value="item.value"/>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="补充说明">
+          <el-input v-model="feedbackForm.comment" :rows="3" maxlength="500" show-word-limit type="textarea"/>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="feedbackDialog = false">取消</el-button>
+        <el-button type="primary" @click="submitDownFeedback">提交反馈</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 <script src="@/assets/js/ApplyRepairInfo.js"></script>
@@ -221,6 +254,16 @@
 
 .muted-text {
   color: var(--text-secondary);
+}
+
+.analysis-feedback {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color, #ebeef5);
 }
 
 @media (max-width: 760px) {

@@ -11,6 +11,7 @@ import com.example.springboot.mapper.RepairMapper;
 import com.example.springboot.service.AiServiceClient;
 import com.example.springboot.service.dto.AiRepairAnalyzeRequest;
 import com.example.springboot.service.dto.AiRepairConfirmRequest;
+import com.example.springboot.service.dto.AiRepairFeedbackRequest;
 import com.example.springboot.service.dto.AiServiceAnalyzeResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -90,6 +91,25 @@ class AiRepairServiceImplTest {
         Map<String, Object> result = service.confirm("req_test_003", decision(), managerSession(1));
         assertEquals(88, result.get("repairId"));
         assertEquals(true, result.get("duplicate"));
+    }
+
+    @Test
+    void studentCannotSubmitFeedbackForAnotherApplicant() {
+        AiRepairRequest pending = pending("req_feedback_001", 1, "PENDING_REVIEW");
+        pending.setApplicantUsername("stu002");
+        when(requestMapper.selectById("req_feedback_001")).thenReturn(pending);
+        AiRepairFeedbackRequest feedback = new AiRepairFeedbackRequest();
+        feedback.setRequestId("req_feedback_001");
+        feedback.setRating("UP");
+        assertThrows(SecurityException.class, () -> service.feedback(feedback, studentSession()));
+    }
+
+    @Test
+    void downFeedbackRequiresKnownReason() {
+        AiRepairFeedbackRequest feedback = new AiRepairFeedbackRequest();
+        feedback.setRequestId("req_feedback_002");
+        feedback.setRating("DOWN");
+        assertThrows(IllegalArgumentException.class, () -> service.feedback(feedback, studentSession()));
     }
 
     private AiServiceAnalyzeResponse analysis(String requestId) {

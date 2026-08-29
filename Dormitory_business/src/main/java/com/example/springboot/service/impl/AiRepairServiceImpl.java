@@ -16,6 +16,8 @@ import com.example.springboot.service.AiRepairService;
 import com.example.springboot.service.AiServiceClient;
 import com.example.springboot.service.dto.AiRepairAnalyzeRequest;
 import com.example.springboot.service.dto.AiRepairConfirmRequest;
+import com.example.springboot.service.dto.AiRepairFeedbackRequest;
+import com.example.springboot.service.dto.AiRepairMetricsResponse;
 import com.example.springboot.service.dto.AiServiceAnalyzeRequest;
 import com.example.springboot.service.dto.AiServiceAnalyzeResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -48,6 +50,13 @@ public class AiRepairServiceImpl implements AiRepairService {
     private static final Set<String> DEPARTMENTS = Collections.unmodifiableSet(Arrays.stream(new String[]{
             "WATER_ELECTRIC", "NETWORK_OPERATIONS", "FACILITY_MAINTENANCE",
             "CAMPUS_EMERGENCY", "GENERAL_SERVICES"
+    }).collect(Collectors.toSet()));
+    private static final Set<String> FEEDBACK_RATINGS = Collections.unmodifiableSet(Arrays.stream(new String[]{
+            "UP", "DOWN"
+    }).collect(Collectors.toSet()));
+    private static final Set<String> FEEDBACK_REASONS = Collections.unmodifiableSet(Arrays.stream(new String[]{
+            "CLASSIFICATION_ERROR", "URGENCY_ERROR", "RETRIEVAL_ERROR", "UNSUPPORTED_ANSWER",
+            "UNCLEAR_EXPLANATION", "OTHER"
     }).collect(Collectors.toSet()));
 
     @Resource
@@ -171,6 +180,32 @@ public class AiRepairServiceImpl implements AiRepairService {
         }
     }
 
+    @Override
+    public void feedback(AiRepairFeedbackRequest request, HttpSession session) {
+        if (request.getRequestId() == null || request.getRequestId().trim().isEmpty()) {
+            throw new IllegalArgumentException("反馈请求编号不能为空");
+        }
+        if (!FEEDBACK_RATINGS.contains(request.getRating())) {
+            throw new IllegalArgumentException("反馈评分不在允许范围内");
+        }
+        if ("DOWN".equals(request.getRating())
+                && (request.getReason() == null || !FEEDBACK_REASONS.contains(request.getReason()))) {
+            throw new IllegalArgumentException("点踩时必须选择有效错误原因");
+        }
+        AiRepairRequest pending = aiRepairRequestMapper.selectById(request.getRequestId());
+        if (pending == null) {
+            throw new IllegalArgumentException("AI报修申请不存在");
+        }
+        requireFeedbackAccess(pending, session);
+        aiServiceClient.feedback(request);
+    }
+
+    @Override
+    public AiRepairMetricsResponse metrics(HttpSession session) {
+        requireManager(session);
+        return aiServiceClient.metrics();
+    }
+
     private AiRepairRequest toPending(AiRepairAnalyzeRequest request, Student student, DormRoom room,
                                       AiServiceAnalyzeResponse analysis) {
         AiRepairRequest pending = new AiRepairRequest();
@@ -213,6 +248,23 @@ public class AiRepairServiceImpl implements AiRepairService {
             throw new SecurityException("无权审核其他楼栋的申请");
         }
         return request;
+    }
+
+    private void requireFeedbackAccess(AiRepairRequest request, HttpSession session) {
+        Object identity = session.getAttribute("Identity");
+        Object user = session.getAttribute("User");
+        if ("stu".equals(identity) && user instanceof Student
+                && ((Student) user).getUsername().equals(request.getApplicantUsername())) {
+            return;
+        }
+        if ("admin".equals(identity) && user instanceof Admin) {
+            return;
+        }
+        if ("dormManager".equals(identity) && user instanceof DormManager
+                && ((DormManager) user).getDormBuildId() == request.getDormBuildId()) {
+            return;
+        }
+        throw new SecurityException("无权提交该申请的反馈");
     }
 
     private Student requireStudent(HttpSession session) {

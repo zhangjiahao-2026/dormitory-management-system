@@ -4,6 +4,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException
 
 from app.config import settings
 from app.repositories.analysis_log_repository import AnalysisLogRepository
+from app.schemas.feedback import FeedbackRequest, MetricsResponse
 from app.schemas.ticket import TicketAnalyzeRequest, TicketAnalyzeResponse
 from app.services.classifier import TicketClassifier
 from app.services.llm_service import OpenAiCompatibleLlmClient
@@ -33,6 +34,7 @@ def create_workflow() -> RepairWorkflow:
 
 
 app = FastAPI(title="Dormitory AI Repair Service", version="1.0.0")
+repository = AnalysisLogRepository(settings.data_dir / "ai_service.sqlite3")
 workflow = create_workflow()
 
 
@@ -48,3 +50,21 @@ def health() -> dict:
 )
 def analyze(request: TicketAnalyzeRequest) -> TicketAnalyzeResponse:
     return workflow.analyze(request)
+
+
+@app.post("/v1/repair/feedback", dependencies=[Depends(verify_internal_token)])
+def feedback(request: FeedbackRequest) -> dict:
+    try:
+        repository.save_feedback(request)
+    except ValueError as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error
+    return {"success": True}
+
+
+@app.get(
+    "/v1/repair/metrics",
+    response_model=MetricsResponse,
+    dependencies=[Depends(verify_internal_token)],
+)
+def metrics() -> MetricsResponse:
+    return repository.metrics()

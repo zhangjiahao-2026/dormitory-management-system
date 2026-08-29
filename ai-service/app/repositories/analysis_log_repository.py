@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 from app.schemas.ticket import TicketAnalyzeResponse
+from app.schemas.feedback import FeedbackRequest, MetricsResponse
 
 
 class AnalysisLogRepository:
@@ -40,6 +41,21 @@ class AnalysisLogRepository:
                     status TEXT NOT NULL,
                     error_type TEXT,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+                """
+            )
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS ai_feedback (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    request_id TEXT NOT NULL UNIQUE,
+                    rating TEXT NOT NULL,
+                    reason TEXT,
+                    expected_category TEXT,
+                    comment TEXT,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (request_id) REFERENCES ai_analysis_log(request_id)
                 )
                 """
             )
@@ -80,3 +96,71 @@ class AnalysisLogRepository:
                     error_type,
                 ),
             )
+
+    def save_feedback(self, feedback: FeedbackRequest) -> None:
+        with self._connect() as connection:
+            exists = connection.execute(
+                "SELECT 1 FROM ai_analysis_log WHERE request_id = ?", (feedback.request_id,)
+            ).fetchone()
+            if exists is None:
+                raise ValueError("analysis request does not exist")
+            connection.execute(
+                """
+                INSERT INTO ai_feedback (request_id, rating, reason, expected_category, comment)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(request_id) DO UPDATE SET
+                    rating = excluded.rating,
+                    reason = excluded.reason,
+                    expected_category = excluded.expected_category,
+                    comment = excluded.comment,
+                    updated_at = CURRENT_TIMESTAMP
+                """,
+                (
+                    feedback.request_id,
+                    feedback.rating.value,
+                    feedback.reason.value if feedback.reason else None,
+                    feedback.expected_category.value if feedback.expected_category else None,
+                    feedback.comment.strip() if feedback.comment else None,
+                ),
+            )
+
+    def metrics(self) -> MetricsResponse:
+        with self._connect() as connection:
+            totals = connection.execute(
+                """
+                SELECT COUNT(*) total,
+                       SUM(CASE WHEN error_type IS NULL THEN 1 ELSE 0 END) successful,
+                       AVG(latency_ms) average_latency,
+                       SUM(CASE WHEN status IS NOT NULL THEN 1 ELSE 0 END) structured,
+                       SUM(requires_human_review) reviewed
+                FROM ai_analysis_log
+                """
+            ).fetchone()
+            feedback = connection.execute(
+                "SELECT COUNT(*) total, SUM(CASE WHEN rating = 'UP' THEN 1 ELSE 0 END) positive FROM ai_feedback"
+            ).fetchone()
+            errors = connection.execute(
+                """
+                SELECT error_type, COUNT(*) count
+                FROM ai_analysis_log
+                WHERE error_type IS NOT NULL
+                GROUP BY error_type
+                ORDER BY count DESC, error_type
+                LIMIT 5
+                """
+            ).fetchall()
+        total = int(totals["total"] or 0)
+        feedback_total = int(feedback["total"] or 0)
+        return MetricsResponse(
+            total_requests=total,
+            success_rate=self._rate(totals["successful"], total),
+            average_latency_ms=round(float(totals["average_latency"] or 0.0), 2),
+            structured_output_rate=self._rate(totals["structured"], total),
+            human_review_rate=self._rate(totals["reviewed"], total),
+            positive_feedback_rate=(self._rate(feedback["positive"], feedback_total) if feedback_total else None),
+            top_errors={row["error_type"]: int(row["count"]) for row in errors},
+        )
+
+    @staticmethod
+    def _rate(numerator: Optional[int], denominator: int) -> float:
+        return round(float(numerator or 0) / denominator, 4) if denominator else 0.0

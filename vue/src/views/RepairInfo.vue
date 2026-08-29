@@ -126,28 +126,26 @@
         </div>
         <!--      弹窗-->
         <div>
-          <el-dialog v-model="dialogVisible" title="操作" width="30%" @close="cancel">
-            <el-form ref="form" :model="form" :rules="rules" label-width="120px">
-              <el-form-item label="标题" prop="title" style="margin-bottom: 27px">
-                <el-input v-model="form.title" clearable style="width: 80%"></el-input>
+          <el-dialog v-model="dialogVisible" class="repair-edit-dialog" title="工单信息" width="720px" @close="cancel">
+            <el-form ref="form" :model="form" :rules="rules" class="repair-edit-form" label-width="110px">
+              <el-form-item label="标题" prop="title">
+                <el-input v-model="form.title" clearable></el-input>
               </el-form-item>
-              <el-form-item label="楼宇号" prop="dormBuildId" style="margin-bottom: 27px">
-                <el-input v-model="form.dormBuildId" clearable style="width: 50%"></el-input>
+              <el-form-item label="楼宇号" prop="dormBuildId">
+                <el-input v-model="form.dormBuildId" clearable></el-input>
               </el-form-item>
-              <el-form-item label="房间号" prop="dormRoomId" style="margin-bottom: 27px">
-                <el-input v-model="form.dormRoomId" clearable style="width: 50%"
-                ></el-input>
+              <el-form-item label="房间号" prop="dormRoomId">
+                <el-input v-model="form.dormRoomId" clearable></el-input>
               </el-form-item>
               <el-form-item label="申请人" prop="repairer">
-                <el-input v-model="form.repairer" clearable style="width: 50%"></el-input>
+                <el-input v-model="form.repairer" clearable></el-input>
               </el-form-item>
               <el-form-item label="内容" prop="content">
                 <el-input
                     v-model="form.content"
-                    :autosize="{ minRows: 3, maxRows: 10 }"
+                    :autosize="{ minRows: 4, maxRows: 10 }"
                     autosize
                     clearable
-                    style="width: 80%"
                     type="textarea"
                 ></el-input>
               </el-form-item>
@@ -155,23 +153,21 @@
                 <el-radio v-model="form.state" label="完成">完成</el-radio>
                 <el-radio v-model="form.state" label="未完成">未完成</el-radio>
               </el-form-item>
-              <el-form-item label="订单创建时间" prop="orderBuildTime" style="margin-top: 27px">
+              <el-form-item label="订单创建时间" prop="orderBuildTime">
                 <el-date-picker
                     v-model="form.orderBuildTime"
                     :disabled="buildTimeDisabled"
                     clearable
                     placeholder="选择时间"
-                    style="width: 48%"
                     type="datetime"
                     value-format="YYYY-MM-DD HH:mm:ss"
                 ></el-date-picker>
               </el-form-item>
-              <el-form-item :style="finishTime" label="订单完成时间" prop="orderFinishTime" style="margin-top: 27px">
+              <el-form-item :style="finishTime" label="订单完成时间" prop="orderFinishTime">
                 <el-date-picker
                     v-model="form.orderFinishTime"
                     clearable
                     placeholder="选择时间"
-                    style="width: 48%"
                     type="datetime"
                     value-format="YYYY-MM-DD HH:mm:ss"
                 ></el-date-picker>
@@ -185,7 +181,7 @@
             </template>
           </el-dialog>
           <!--   内容详情弹窗-->
-          <el-dialog v-model="detailDialog" title="详情" width="30%">
+          <el-dialog v-model="detailDialog" class="repair-detail-dialog" title="工单详情" width="640px">
             <el-card>
               <div v-html="detail.content"></div>
             </el-card>
@@ -293,5 +289,16 @@
 
 .ai-detail-block ol {
   line-height: 1.8;
+}
+
+:deep(.repair-edit-dialog),
+:deep(.repair-detail-dialog) {
+  max-width: calc(100vw - 32px);
+}
+
+.repair-edit-form :deep(.el-input),
+.repair-edit-form :deep(.el-textarea),
+.repair-edit-form :deep(.el-date-editor) {
+  width: 100%;
 }
 </style>

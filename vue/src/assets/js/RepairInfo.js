@@ -251,6 +251,10 @@ export default {
                 this.aiLoading = false;
             });
         },
+        refreshAiPanel() {
+            this.loadAiPending();
+            this.loadMetrics(true);
+        },
         openAiReview(row) {
             this.aiDetail = row;
             this.aiDecision = {
@@ -309,9 +313,17 @@ export default {
         confidencePercent(value) {
             return `${Math.round((Number(value) || 0) * 100)}%`;
         },
-        loadMetrics() {
+        loadMetrics(showError = false) {
             request.get("/repair/ai/metrics").then((res) => {
-                if (res.code === "0") this.metrics = res.data || {};
+                if (res.code === "0") {
+                    this.metrics = res.data || {};
+                } else if (showError) {
+                    ElMessage({message: res.msg || "AI 指标暂时不可用", type: "warning"});
+                }
+            }).catch(() => {
+                if (showError) {
+                    ElMessage({message: "AI 指标暂时不可用", type: "warning"});
+                }
             });
         },
         metricPercent(value) {

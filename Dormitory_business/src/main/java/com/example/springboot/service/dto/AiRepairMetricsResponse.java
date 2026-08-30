@@ -1,6 +1,6 @@
 package com.example.springboot.service.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.Data;
 
 import java.util.LinkedHashMap;
@@ -8,18 +8,18 @@ import java.util.Map;
 
 @Data
 public class AiRepairMetricsResponse {
-    @JsonProperty("total_requests")
+    @JsonAlias("total_requests")
     private Integer totalRequests;
-    @JsonProperty("success_rate")
+    @JsonAlias("success_rate")
     private Double successRate;
-    @JsonProperty("average_latency_ms")
+    @JsonAlias("average_latency_ms")
     private Double averageLatencyMs;
-    @JsonProperty("structured_output_rate")
+    @JsonAlias("structured_output_rate")
     private Double structuredOutputRate;
-    @JsonProperty("human_review_rate")
+    @JsonAlias("human_review_rate")
     private Double humanReviewRate;
-    @JsonProperty("positive_feedback_rate")
+    @JsonAlias("positive_feedback_rate")
     private Double positiveFeedbackRate;
-    @JsonProperty("top_errors")
+    @JsonAlias("top_errors")
     private Map<String, Integer> topErrors = new LinkedHashMap<>();
 }

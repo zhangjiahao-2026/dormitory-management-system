@@ -12,7 +12,7 @@
             <strong>AI 报修待审核</strong>
             <span class="ai-panel-tip">AI 仅提供辅助分析，确认后才创建正式工单</span>
           </div>
-          <el-button :loading="aiLoading" type="primary" plain @click="loadAiPending">刷新</el-button>
+          <el-button :loading="aiLoading" type="primary" plain @click="refreshAiPanel">刷新</el-button>
         </div>
       </template>
       <el-row :gutter="12" class="metrics-row">

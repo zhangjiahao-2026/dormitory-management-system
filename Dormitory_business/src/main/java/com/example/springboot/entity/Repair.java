@@ -35,4 +35,18 @@ public class Repair {
     private String orderBuildTime;
     @TableField("order_finishtime")
     private String orderFinishTime;
+    @TableField("ai_request_id")
+    private String aiRequestId;
+    @TableField("ai_assisted")
+    private Integer aiAssisted;
+    @TableField("ai_category")
+    private String aiCategory;
+    @TableField("ai_urgency")
+    private String aiUrgency;
+    @TableField("ai_department")
+    private String aiDepartment;
+    @TableField("human_confirmed_by")
+    private String humanConfirmedBy;
+    @TableField("human_confirmed_at")
+    private String humanConfirmedAt;
 }

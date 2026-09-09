@@ -1,0 +1,1 @@
+"""Dormitory AI repair service."""

@@ -2,10 +2,86 @@
 
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.6.3-green.svg)
 ![Vue](https://img.shields.io/badge/Vue-3-blue.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.103-009688.svg)
+![Chroma](https://img.shields.io/badge/RAG-Chroma-orange.svg)
 ![MySQL](https://img.shields.io/badge/MySQL-5.7+-lightgrey.svg)
+![H2](https://img.shields.io/badge/H2-local%20demo-blue.svg)
 ![Java](https://img.shields.io/badge/Java-11-orange.svg)
 
 基于 Spring Boot 2.6.3、Vue 3、Element Plus、MyBatis-Plus 和 MySQL 的高校宿舍管理系统。系统面向管理员、宿管和学生三类角色，覆盖宿舍基础信息、报修调宿、访客登记、水电管理、出入管理和首页告警看板等常用宿舍业务。
+
+## AI 报修工单助手
+
+### 项目解决的问题
+
+传统宿舍报修依赖学生手动选择类别、描述故障，再由宿管人工判断紧急程度和处理部门，容易出现信息不完整、危险事件未及时升级、处理依据不可追溯等问题。本项目在保留原人工报修入口的基础上增加 AI 辅助链路：
+
+- 使用本地规则和 OpenAI-compatible 模型完成结构化分类，不配置模型时仍可离线运行。
+- 从 6 份宿舍维修 SOP 中检索 Top-3 依据，展示文档、章节和相关度。
+- 对漏电、明火、燃气、水接近电气设施和提示注入等风险进行前后置检查。
+- AI 只生成待审核申请；宿管或管理员确认后才创建正式工单。
+- 无有效 SOP、低置信度、模型超时或输出异常时安全降级并转人工。
+
+### AI 工作流
+
+```mermaid
+flowchart LR
+    A[学生填写报修描述] --> B[Session 与宿舍信息校验]
+    B --> C[风险预检]
+    C --> D[本地规则 / 大模型分类]
+    D --> E[Chroma 检索 Top-3 SOP]
+    E --> F[建议与来源安全检查]
+    F --> G{结果可信且有依据?}
+    G -- 否 --> H[标记人工复核]
+    G -- 是 --> I[生成待审核申请]
+    H --> I
+    I --> J[宿管按楼栋审核]
+    J -- 确认 --> K[事务内创建正式工单]
+    J -- 拒绝 --> L[记录拒绝原因]
+```
+
+详细流程、角色边界和风险规则见 [AI 报修流程说明](doc/ai-repair-workflow.md)。
+
+### 演示截图
+
+![AI 报修待审核、运行指标与人工确认入口](doc/images/ai-repair-review.jpg)
+
+上图为本地演示数据：AI 分析先进入待审核列表，宿管可查看分类、紧急程度、置信度和 SOP 来源，确认后才会生成正式报修工单。
+
+### 核心指标
+
+以下结果来自 `ai-service/evaluation/dataset.json` 的 30 条离线评测，运行本地规则、SOP 检索和风险检查，不调用外部大模型：
+
+| 指标 | 结果 |
+| --- | ---: |
+| 分类准确率 | 90% |
+| 紧急事件召回率 | 100% |
+| SOP Top-3 命中率 | 86.36% |
+| 正确拒答率 | 100% |
+| 人工复核召回率 | 100% |
+
+### 风险规则迭代
+
+离线评测暴露了“漏水已经流到插座附近”这类跨类别复合风险。项目在 Prompt 和本地分类器中同步加入“水 + 电气设施”规则，命中后强制升级为紧急事件并转人工复核。当前 30 条评测集上的紧急事件召回率为 100%，分类准确率为 90%，剩余误差和改进方向在报告中如实记录。
+
+分类、SOP 建议和安全约束策略位于 [`ai-service/app/prompts/`](ai-service/app/prompts/)，可执行评测集位于 [`ai-service/evaluation/dataset.json`](ai-service/evaluation/dataset.json)，迭代复盘见 [`ai-service/evaluation/评估迭代报告.md`](ai-service/evaluation/评估迭代报告.md)。
+
+### 快速体验（无需 MySQL）
+
+准备 JDK 11、Maven 3.6+、Node.js 14+ 和 Python 3.9+，在三个终端分别启动服务。本地演示使用 H2 数据库，会自动建表并加载示例数据：
+
+```bash
+# 1. AI 服务（默认 127.0.0.1:8000）
+./start-ai-local.sh
+
+# 2. Spring Boot 后端（默认 localhost:9091）
+./start-backend-local.sh
+
+# 3. Vue 前端（默认 localhost:8080）
+./start-frontend-local.sh
+```
+
+AI 服务读取 `AI_LLM_API_KEY`、`AI_LLM_BASE_URL` 和 `AI_LLM_MODEL`。未配置真实模型时自动使用本地规则和 RAG；真实密钥只应放在被 Git 忽略的 `.env.local`。启动后访问 `http://localhost:8080`，学生可提交 AI 报修申请，宿管或管理员可在“报修信息”中审核。完整的 MySQL 部署说明见下方“快速启动”。
 
 ## 功能概览
 
@@ -111,14 +187,21 @@ setx LLM_MODEL "your-model-name"
 | 层级 | 技术 |
 | --- | --- |
 | 后端 | Spring Boot 2.6.3、MyBatis-Plus 3.5.1、Maven |
+| AI 服务 | FastAPI、Pydantic、Chroma、SQLite、OpenAI-compatible API |
 | 前端 | Vue 3、Vue Router、Vuex、Element Plus、Axios、ECharts |
 | 数据库 | MySQL 5.7+ |
-| 运行环境 | JDK 11、Node.js 14+ |
+| 运行环境 | JDK 11、Node.js 14+、Python 3.9+ |
 
 ## 项目结构
 
 ```text
 DormitoryManagementSystem/
+├── ai-service/                         # AI 报修分析服务
+│   ├── app/prompts/                    # Prompt 策略
+│   ├── app/services/                   # 分类、RAG、风险和工作流
+│   ├── evaluation/                     # 30 条评测集和评估脚本
+│   ├── knowledge/                      # 6 份宿舍维修 SOP
+│   └── tests/                          # AI 单元与安全测试
 ├── Dormitory_business/                 # Spring Boot 后端
 │   ├── src/main/java/com/example/springboot/
 │   │   ├── common/                     # 配置、工具类、拦截器、定时任务
@@ -128,7 +211,9 @@ DormitoryManagementSystem/
 │   │   ├── mapper/                     # MyBatis-Plus Mapper
 │   │   └── service/                    # 业务逻辑
 │   └── src/main/resources/
-│       └── application.properties      # 后端端口和数据库配置
+│       ├── application.properties      # MySQL 部署配置
+│       ├── application-local.properties # H2 本地演示配置
+│       └── schema-h2.sql               # H2 表结构与演示数据
 ├── vue/                                # Vue 3 前端
 │   ├── src/assets/                     # CSS、页面脚本、图片资源
 │   ├── src/components/                 # 公共组件
@@ -138,11 +223,16 @@ DormitoryManagementSystem/
 │   ├── src/utils/                      # Axios 请求封装、AI 小助手事件桥
 │   └── src/views/                      # 页面视图
 ├── doc/                                # 数据库脚本
+│   ├── ai-repair-workflow.md           # AI 流程、边界和接口约定
+│   ├── images/                         # 仓库演示截图
 │   ├── dormitory.sql                   # 全量初始化脚本
 │   ├── utility_migration.sql           # 水电管理迁移脚本
 │   ├── access_migration.sql            # 出入管理迁移脚本
 │   ├── access_seed.sql                 # 出入管理样例数据
 │   └── campus_seed.sql                 # 校园基础扩展示例数据
+├── start-ai-local.sh                  # 启动 AI 服务
+├── start-backend-local.sh             # 使用 H2 启动后端
+├── start-frontend-local.sh            # 安装依赖并启动前端
 └── README.md
 ```
 
@@ -210,6 +300,8 @@ http://localhost:8081
 
 ## 默认账号
 
+以下账号和数据仅用于本地演示，不应用于生产环境。
+
 | 角色 | 用户名 | 密码 |
 | --- | --- | --- |
 | 管理员 | admin | 123456 |
@@ -231,3 +323,13 @@ mvn test
 cd vue
 npm run build
 ```
+
+AI 服务单元测试与离线评测：
+
+```bash
+cd ai-service
+python -m pytest
+python evaluation/evaluate.py
+```
+
+离线评测不调用外部大模型，可在本地稳定复现 README 中的指标。

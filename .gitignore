@@ -39,6 +39,11 @@ build/
 vue/node_modules/
 vue/dist/
 
+### Local runtime data ###
+Dormitory_business/data/
+.env.local
+logs/
+
 ### OS ###
 .DS_Store
 Thumbs.db

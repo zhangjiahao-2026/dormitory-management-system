@@ -5,6 +5,7 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.103-009688.svg)
 ![Chroma](https://img.shields.io/badge/RAG-Chroma-orange.svg)
 ![MySQL](https://img.shields.io/badge/MySQL-5.7+-lightgrey.svg)
+![H2](https://img.shields.io/badge/H2-local%20demo-blue.svg)
 ![Java](https://img.shields.io/badge/Java-11-orange.svg)
 
 基于 Spring Boot 2.6.3、Vue 3、Element Plus、MyBatis-Plus 和 MySQL 的高校宿舍管理系统。系统面向管理员、宿管和学生三类角色，覆盖宿舍基础信息、报修调宿、访客登记、水电管理、出入管理和首页告警看板等常用宿舍业务。
@@ -59,36 +60,28 @@ flowchart LR
 | 正确拒答率 | 100% |
 | 人工复核召回率 | 100% |
 
-### Prompt 迭代结果
+### 风险规则迭代
 
-首版分类策略只覆盖漏电、冒烟等显式危险词，容易把“漏水已经流到插座附近”判断成普通给排水故障。迭代后在 Prompt 和本地风险规则中同步加入“水 + 电气设施”的复合风险规则：
+离线评测暴露了“漏水已经流到插座附近”这类跨类别复合风险。项目在 Prompt 和本地分类器中同步加入“水 + 电气设施”规则，命中后强制升级为紧急事件并转人工复核。当前 30 条评测集上的紧急事件召回率为 100%，分类准确率为 90%，剩余误差和改进方向在报告中如实记录。
 
-| 20 条作业测试集 | 迭代前 | 迭代后 |
-| --- | ---: | ---: |
-| 通过条数 | 16 / 20 | 20 / 20 |
-| 紧急事件召回率 | 80% | 100% |
+分类、SOP 建议和安全约束策略位于 [`ai-service/app/prompts/`](ai-service/app/prompts/)，可执行评测集位于 [`ai-service/evaluation/dataset.json`](ai-service/evaluation/dataset.json)，迭代复盘见 [`ai-service/evaluation/评估迭代报告.md`](ai-service/evaluation/评估迭代报告.md)。
 
-分类、SOP 建议和安全约束策略位于 [`ai-service/app/prompts/`](ai-service/app/prompts/)，测试数据和评估脚本位于 [`ai-service/evaluation/`](ai-service/evaluation/)。
+### 快速体验（无需 MySQL）
 
-### 运行或体验方式
-
-准备 JDK 11、Maven、Node.js 和 Python 3.9+，在三个终端分别启动服务：
+准备 JDK 11、Maven 3.6+、Node.js 14+ 和 Python 3.9+，在三个终端分别启动服务。本地演示使用 H2 数据库，会自动建表并加载示例数据：
 
 ```bash
 # 1. AI 服务（默认 127.0.0.1:8000）
 ./start-ai-local.sh
 
 # 2. Spring Boot 后端（默认 localhost:9091）
-cd Dormitory_business
-mvn spring-boot:run
+./start-backend-local.sh
 
 # 3. Vue 前端（默认 localhost:8080）
-cd vue
-npm install
-npm run serve
+./start-frontend-local.sh
 ```
 
-AI 服务读取 `AI_LLM_API_KEY`、`AI_LLM_BASE_URL` 和 `AI_LLM_MODEL`。未配置真实模型时自动使用本地规则和 RAG；真实密钥只应放在被 Git 忽略的 `.env.local`。启动后访问 `http://localhost:8080`，学生可提交 AI 报修申请，宿管或管理员可在“报修信息”中审核。完整数据库与启动说明见下方“快速启动”。
+AI 服务读取 `AI_LLM_API_KEY`、`AI_LLM_BASE_URL` 和 `AI_LLM_MODEL`。未配置真实模型时自动使用本地规则和 RAG；真实密钥只应放在被 Git 忽略的 `.env.local`。启动后访问 `http://localhost:8080`，学生可提交 AI 报修申请，宿管或管理员可在“报修信息”中审核。完整的 MySQL 部署说明见下方“快速启动”。
 
 ## 功能概览
 
@@ -218,7 +211,9 @@ DormitoryManagementSystem/
 │   │   ├── mapper/                     # MyBatis-Plus Mapper
 │   │   └── service/                    # 业务逻辑
 │   └── src/main/resources/
-│       └── application.properties      # 后端端口和数据库配置
+│       ├── application.properties      # MySQL 部署配置
+│       ├── application-local.properties # H2 本地演示配置
+│       └── schema-h2.sql               # H2 表结构与演示数据
 ├── vue/                                # Vue 3 前端
 │   ├── src/assets/                     # CSS、页面脚本、图片资源
 │   ├── src/components/                 # 公共组件
@@ -235,6 +230,9 @@ DormitoryManagementSystem/
 │   ├── access_migration.sql            # 出入管理迁移脚本
 │   ├── access_seed.sql                 # 出入管理样例数据
 │   └── campus_seed.sql                 # 校园基础扩展示例数据
+├── start-ai-local.sh                  # 启动 AI 服务
+├── start-backend-local.sh             # 使用 H2 启动后端
+├── start-frontend-local.sh            # 安装依赖并启动前端
 └── README.md
 ```
 
@@ -302,6 +300,8 @@ http://localhost:8081
 
 ## 默认账号
 
+以下账号和数据仅用于本地演示，不应用于生产环境。
+
 | 角色 | 用户名 | 密码 |
 | --- | --- | --- |
 | 管理员 | admin | 123456 |
@@ -323,3 +323,13 @@ mvn test
 cd vue
 npm run build
 ```
+
+AI 服务单元测试与离线评测：
+
+```bash
+cd ai-service
+python -m pytest
+python evaluation/evaluate.py
+```
+
+离线评测不调用外部大模型，可在本地稳定复现 README 中的指标。

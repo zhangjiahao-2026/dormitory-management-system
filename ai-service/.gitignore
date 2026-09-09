@@ -3,6 +3,7 @@
 __pycache__/
 *.py[cod]
 data/
+.evaluation-data/
 chroma/
 *.sqlite3
 *.db

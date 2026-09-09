@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from typing import Optional
 
 import httpx
 from pydantic import ValidationError
 
 from app.schemas.ticket import ClassificationResult
+from app.services.prompt_library import load_prompt
 
 
 class OpenAiCompatibleLlmClient:
@@ -24,8 +24,7 @@ class OpenAiCompatibleLlmClient:
         self.model = model
         self.timeout_seconds = timeout_seconds
         self.client = client or httpx.Client(timeout=timeout_seconds, trust_env=False)
-        prompt_path = Path(__file__).parents[1] / "prompts" / "ticket_classification_v1.md"
-        self.prompt = prompt_path.read_text(encoding="utf-8")
+        self.prompt = load_prompt("classification")
 
     @property
     def enabled(self) -> bool:

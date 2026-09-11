@@ -47,6 +47,8 @@ export default {
                 ],
                 gender: [{required: true, message: "请选择性别", trigger: "change"}],
                 phoneNum: [{required: true, validator: checkPhone, trigger: "blur"}],
+                dormBuildId: [{required: true, message: "请输入被访楼栋", trigger: "change"}],
+                dormRoomId: [{required: true, message: "请输入被访房间", trigger: "change"}],
                 visitTime: [
                     {required: true, message: "请选择时间", trigger: "change"},
                 ],
@@ -55,6 +57,11 @@ export default {
                 ],
             },
         };
+    },
+    computed: {
+        isDormManager() {
+            return JSON.parse(sessionStorage.getItem("identity") || '""') === "dormManager";
+        },
     },
     created() {
         this.load();
@@ -111,7 +118,11 @@ export default {
             this.$nextTick(() => {
                 this.$refs.form.resetFields();
                 this.disabled = false;
-                this.form = {};
+                const user = JSON.parse(sessionStorage.getItem("user") || "null");
+                this.form = {
+                    dormBuildId: this.isDormManager && user ? Number(user.dormBuildId) : null,
+                    dormRoomId: null,
+                };
                 this.judge = false;
             });
         },

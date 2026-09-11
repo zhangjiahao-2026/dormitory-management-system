@@ -11,18 +11,12 @@ export default {
                 return;
             }
             this.dormRoomId = value;
-            request.get("/room/checkRoomExist/" + value).then((existResult) => {
-                if (existResult.code === "-1") {
-                    callback(new Error(existResult.msg));
+            request.get("/room/availability/" + value).then((result) => {
+                if (result.code !== "0") {
+                    callback(new Error(result.msg));
                     return;
                 }
-                request.get("/room/checkRoomState/" + value).then((stateResult) => {
-                    if (stateResult.code === "-1") {
-                        callback(new Error(stateResult.msg));
-                        return;
-                    }
-                    callback();
-                });
+                callback();
             });
         };
         const checkBedState = (rule, value, callback) => {
@@ -34,7 +28,7 @@ export default {
                 callback(new Error("请先填写目标房间号"));
                 return;
             }
-            request.get("/room/checkBedState/" + this.dormRoomId + "/" + value).then((res) => {
+            request.get("/room/availability/" + this.dormRoomId + "/" + value).then((res) => {
                 if (res.code === "0") {
                     callback();
                 } else {
@@ -75,18 +69,11 @@ export default {
             request.get("/room/getMyRoom/" + this.form.username).then((res) => {
                 if (res.code === "0") {
                     this.form.currentRoomId = res.data.dormRoomId;
-                    this.form.currentBedId = this.calBedNum(this.form.username, res.data);
+                    this.form.currentBedId = res.data.ownBedNumber;
                 } else {
                     ElMessage({message: res.msg, type: "error"});
                 }
             });
-        },
-        calBedNum(username, data) {
-            if (data.firstBed === username) return 1;
-            if (data.secondBed === username) return 2;
-            if (data.thirdBed === username) return 3;
-            if (data.fourthBed === username) return 4;
-            return "";
         },
         resetApplyFields() {
             this.form.towardsRoomId = "";

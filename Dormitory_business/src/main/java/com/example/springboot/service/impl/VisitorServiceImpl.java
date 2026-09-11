@@ -31,12 +31,19 @@ public class VisitorServiceImpl extends ServiceImpl<VisitorMapper, Visitor> impl
      */
     @Override
     public Page find(Integer pageNum, Integer pageSize, String search) {
-//        return visitorMapper.selectPage(new Page<>(pageNum, pageSize), new QueryWrapper<Visitor>().like("name", search));
         Page newPage = new Page<>(pageNum, pageSize);
         QueryWrapper<Visitor> qw = new QueryWrapper<>();
         qw.like("name", search);
         Page visitorPage = visitorMapper.selectPage(newPage, qw);
         return visitorPage;
+    }
+
+    @Override
+    public Page findByDormBuild(Integer pageNum, Integer pageSize, String search, Integer dormBuildId) {
+        Page newPage = new Page<>(pageNum, pageSize);
+        QueryWrapper<Visitor> qw = new QueryWrapper<>();
+        qw.like("name", search).eq("dormbuild_id", dormBuildId);
+        return visitorMapper.selectPage(newPage, qw);
     }
 
     /**

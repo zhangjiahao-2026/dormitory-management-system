@@ -255,6 +255,7 @@ mysql -u root -p dormitory < doc/utility_migration.sql
 mysql -u root -p dormitory < doc/access_migration.sql
 mysql -u root -p dormitory < doc/access_seed.sql
 mysql -u root -p dormitory < doc/campus_seed.sql
+mysql -u root -p dormitory < doc/visitor_scope_migration.sql
 ```
 
 ### 2. 启动后端

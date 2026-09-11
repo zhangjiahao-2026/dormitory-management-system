@@ -151,25 +151,34 @@ class RagService:
                 "hnsw:space": "cosine",
                 "knowledge_fingerprint": fingerprint,
             }
-            self._collection = client.get_or_create_collection(
-                name="repair_sop",
-                embedding_function=HashEmbeddingFunction(),
-                metadata=collection_metadata,
-            )
-            stored_fingerprint = (self._collection.metadata or {}).get("knowledge_fingerprint")
-            if self._collection.count() != len(self.chunks) or stored_fingerprint != fingerprint:
+            rebuild = False
+            try:
+                collection = client.get_collection(
+                    name="repair_sop",
+                    embedding_function=HashEmbeddingFunction(),
+                )
+                stored_fingerprint = (collection.metadata or {}).get("knowledge_fingerprint")
+                rebuild = collection.count() != len(self.chunks) or stored_fingerprint != fingerprint
+            except Exception:
+                collection = None
+
+            if rebuild:
                 client.delete_collection("repair_sop")
-                self._collection = client.create_collection(
+                collection = None
+
+            if collection is None:
+                collection = client.create_collection(
                     name="repair_sop",
                     embedding_function=HashEmbeddingFunction(),
                     metadata=collection_metadata,
                 )
                 if self.chunks:
-                    self._collection.add(
+                    collection.add(
                         ids=[chunk.chunk_id for chunk in self.chunks],
                         documents=[chunk.content for chunk in self.chunks],
                         metadatas=[self._metadata(chunk) for chunk in self.chunks],
                     )
+            self._collection = collection
         except Exception:
             self._collection = None
 

@@ -16,12 +16,9 @@ export default {
                 floorNum: "",
                 maxCapacity: "",
                 currentCapacity: "",
-                firstBed: "",
-                secondBed: "",
-                thirdBed: "",
-                fourthBed: "",
+                ownBedNumber: "",
+                beds: [],
             },
-            studentNames: {},
             utilityUsage: {
                 electricUsageSum: "0.00",
                 waterUsageSum: "0.00",
@@ -39,15 +36,13 @@ export default {
             return `${this.room.currentCapacity || 0}/${this.room.maxCapacity || 0} 人入住`;
         },
         beds() {
-            return [
-                {key: "firstBed", label: "1 号床", value: this.room.firstBed},
-                {key: "secondBed", label: "2 号床", value: this.room.secondBed},
-                {key: "thirdBed", label: "3 号床", value: this.room.thirdBed},
-                {key: "fourthBed", label: "4 号床", value: this.room.fourthBed},
-            ].map((bed) => ({
-                ...bed,
-                displayName: bed.value ? (this.studentNames[bed.value] || bed.value) : "",
-                isMine: bed.value === this.name,
+            const summaries = Array.isArray(this.room.beds) ? this.room.beds : [];
+            return summaries.map((bed) => ({
+                key: `bed-${bed.bedNumber}`,
+                label: `${bed.bedNumber} 号床`,
+                value: bed.occupied,
+                displayName: bed.mine ? (this.form.name || "我") : (bed.occupied ? "已入住" : ""),
+                isMine: Boolean(bed.mine),
             }));
         },
         monthlyElectricUsage() {
@@ -83,7 +78,6 @@ export default {
             request.get("/room/getMyRoom/" + this.name).then((res) => {
                 if (res.code === "0") {
                     this.room = res.data;
-                    this.loadStudentNames();
                     this.loadMonthlyUtility();
                 } else {
                     ElMessage({
@@ -91,24 +85,6 @@ export default {
                         type: "error",
                     });
                 }
-            });
-        },
-        loadStudentNames() {
-            const usernames = [
-                this.room.firstBed,
-                this.room.secondBed,
-                this.room.thirdBed,
-                this.room.fourthBed,
-            ].filter(Boolean);
-
-            usernames.forEach((username) => {
-                request.get("/stu/exist/" + username).then((res) => {
-                    if (res.code === "0" && res.data) {
-                        this.studentNames[username] = res.data.name || username;
-                    } else {
-                        this.studentNames[username] = username;
-                    }
-                });
             });
         },
         loadMonthlyUtility() {

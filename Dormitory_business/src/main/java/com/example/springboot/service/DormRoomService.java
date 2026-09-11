@@ -16,6 +16,8 @@ public interface DormRoomService extends IService<DormRoom> {
     //查询房间
     Page find(Integer pageNum, Integer pageSize, String search);
 
+    Page findByDormBuild(Integer pageNum, Integer pageSize, String search, Integer dormBuildId);
+
     //更新房间信息
     int updateNewRoom(DormRoom dormRoom);
 

@@ -4,7 +4,7 @@ package com.example.springboot.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.springboot.common.MD5Util;
+import com.example.springboot.common.PasswordUtil;
 import com.example.springboot.entity.DormManager;
 import com.example.springboot.mapper.DormManagerMapper;
 import com.example.springboot.service.DormManagerService;
@@ -27,10 +27,14 @@ public class DormManagerServiceImpl extends ServiceImpl<DormManagerMapper, DormM
      */
     @Override
     public DormManager dormManagerLogin(String username, String password) {
-        QueryWrapper<DormManager> qw = new QueryWrapper<>();
-        qw.eq("username", username);
-        qw.eq("password", MD5Util.md5(password));
-        DormManager dormManager = dormManagerMapper.selectOne(qw);
+        DormManager dormManager = dormManagerMapper.selectById(username);
+        if (dormManager == null || !PasswordUtil.matches(password, dormManager.getPassword())) {
+            return null;
+        }
+        if (PasswordUtil.needsUpgrade(dormManager.getPassword())) {
+            dormManager.setPassword(PasswordUtil.encode(password));
+            dormManagerMapper.updateById(dormManager);
+        }
         return dormManager;
     }
 
@@ -39,6 +43,7 @@ public class DormManagerServiceImpl extends ServiceImpl<DormManagerMapper, DormM
      */
     @Override
     public int addNewDormManager(DormManager dormManager) {
+        dormManager.setPassword(PasswordUtil.encode(dormManager.getPassword()));
         int insert = dormManagerMapper.insert(dormManager);
         return insert;
     }
@@ -60,6 +65,15 @@ public class DormManagerServiceImpl extends ServiceImpl<DormManagerMapper, DormM
      */
     @Override
     public int updateNewDormManager(DormManager dormManager) {
+        DormManager stored = dormManagerMapper.selectById(dormManager.getUsername());
+        if (stored == null) {
+            return 0;
+        }
+        if (dormManager.getPassword() == null || dormManager.getPassword().isBlank()) {
+            dormManager.setPassword(stored.getPassword());
+        } else if (!PasswordUtil.isBcrypt(dormManager.getPassword())) {
+            dormManager.setPassword(PasswordUtil.encode(dormManager.getPassword()));
+        }
         int i = dormManagerMapper.updateById(dormManager);
         return i;
     }

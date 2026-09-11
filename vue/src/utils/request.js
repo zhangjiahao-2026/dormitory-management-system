@@ -30,10 +30,16 @@ request.interceptors.response.use(
         return res;
     },
     error => {
-        if (error.response && error.response.status === 401) {
+        const response = error.response
+        if (response && response.status === 401) {
             window.sessionStorage.removeItem('user')
             window.sessionStorage.removeItem('identity')
             window.location.href = '/Login'
+        }
+        // 后端统一使用 Result 返回业务错误。权限不足属于可预期结果，
+        // 交给页面按 res.code/res.msg 处理，避免开发环境出现未捕获异常遮罩。
+        if (response && response.status === 403 && response.data) {
+            return response.data
         }
         return Promise.reject(error)
     }

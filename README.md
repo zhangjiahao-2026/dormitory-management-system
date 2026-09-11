@@ -16,8 +16,8 @@
 
 传统宿舍报修依赖学生手动选择类别、描述故障，再由宿管人工判断紧急程度和处理部门，容易出现信息不完整、危险事件未及时升级、处理依据不可追溯等问题。本项目在保留原人工报修入口的基础上增加 AI 辅助链路：
 
-- 使用本地规则和 OpenAI-compatible 模型完成结构化分类，不配置模型时仍可离线运行。
-- 从 6 份宿舍维修 SOP 中检索 Top-3 依据，展示文档、章节和相关度。
+- 分类阶段支持 OpenAI-compatible 模型 Prompt；完整性、安全检查和 RAG 依据校验使用确定性代码规则，不配置模型时仍可离线运行。
+- 从 6 份宿舍维修 SOP 中检索 Top-3 依据，展示文档、章节和相关度；离线模式采用哈希向量、关键词命中和词元重叠融合排序，不宣称为神经语义 Embedding。
 - 对漏电、明火、燃气、水接近电气设施和提示注入等风险进行前后置检查。
 - AI 只生成待审核申请；宿管或管理员确认后才创建正式工单。
 - 无有效 SOP、低置信度、模型超时或输出异常时安全降级并转人工。
@@ -57,6 +57,7 @@ flowchart LR
 | 分类准确率 | 90% |
 | 紧急事件召回率 | 100% |
 | SOP Top-3 命中率 | 86.36% |
+| 本地规则 Schema 合法率 | 100% |
 | 正确拒答率 | 100% |
 | 人工复核召回率 | 100% |
 
@@ -66,22 +67,18 @@ flowchart LR
 
 分类、SOP 建议和安全约束策略位于 [`ai-service/app/prompts/`](ai-service/app/prompts/)，可执行评测集位于 [`ai-service/evaluation/dataset.json`](ai-service/evaluation/dataset.json)，迭代复盘见 [`ai-service/evaluation/评估迭代报告.md`](ai-service/evaluation/评估迭代报告.md)。
 
-### 快速体验（无需 MySQL）
-
-准备 JDK 11、Maven 3.6+、Node.js 14+ 和 Python 3.9+，在三个终端分别启动服务。本地演示使用 H2 数据库，会自动建表并加载示例数据：
-
-```bash
-# 1. AI 服务（默认 127.0.0.1:8000）
-./start-ai-local.sh
-
-# 2. Spring Boot 后端（默认 localhost:9091）
-./start-backend-local.sh
-
-# 3. Vue 前端（默认 localhost:8080）
-./start-frontend-local.sh
-```
+### AI 服务配置
 
 AI 服务读取 `AI_LLM_API_KEY`、`AI_LLM_BASE_URL` 和 `AI_LLM_MODEL`。未配置真实模型时自动使用本地规则和 RAG；真实密钥只应放在被 Git 忽略的 `.env.local`。启动后访问 `http://localhost:8080`，学生可提交 AI 报修申请，宿管或管理员可在“报修信息”中审核。完整的 MySQL 部署说明见下方“快速启动”。
+
+生产部署时请设置 `AI_ENV=production` 和非空的 `AI_SERVICE_TOKEN`，并让 Spring Boot 使用相同令牌；AI 服务在生产模式缺少令牌时会拒绝启动。跨域来源通过 `CORS_ALLOWED_ORIGINS` 配置，开发环境默认允许 `http://localhost:8080` 和 `http://127.0.0.1:8080`，生产环境应改为实际前端域名。
+
+### 安全边界
+
+- 登录响应、用户列表和 Session 用户查询均不返回密码字段。
+- 新密码使用 BCrypt；历史 MD5 记录在用户成功登录后自动升级，无需一次性重置账号。
+- 管理员可执行全局管理；学生只能修改本人资料、查询本人报修；宿管的房间、调宿和报修操作按所属楼栋校验。
+- 头像更新接口只接收用户名和头像文件名，不能通过完整实体覆盖他人资料。
 
 ## 功能概览
 
@@ -197,7 +194,7 @@ setx LLM_MODEL "your-model-name"
 ```text
 DormitoryManagementSystem/
 ├── ai-service/                         # AI 报修分析服务
-│   ├── app/prompts/                    # Prompt 策略
+│   ├── app/prompts/                    # Prompt/规则策略文档（仅分类 Prompt 直接调用模型）
 │   ├── app/services/                   # 分类、RAG、风险和工作流
 │   ├── evaluation/                     # 30 条评测集和评估脚本
 │   ├── knowledge/                      # 6 份宿舍维修 SOP
@@ -230,9 +227,7 @@ DormitoryManagementSystem/
 │   ├── access_migration.sql            # 出入管理迁移脚本
 │   ├── access_seed.sql                 # 出入管理样例数据
 │   └── campus_seed.sql                 # 校园基础扩展示例数据
-├── start-ai-local.sh                  # 启动 AI 服务
-├── start-backend-local.sh             # 使用 H2 启动后端
-├── start-frontend-local.sh            # 安装依赖并启动前端
+├── .github/workflows/ci.yml           # Python、Maven 与前端构建 CI
 └── README.md
 ```
 

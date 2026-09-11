@@ -3,11 +3,13 @@ package com.example.springboot.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.springboot.common.Result;
+import com.example.springboot.common.SessionAuth;
 import com.example.springboot.entity.Notice;
 import com.example.springboot.service.NoticeService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
 import java.util.List;
 
 @RestController
@@ -21,7 +23,8 @@ public class NoticeController {
      * 公告添加
      */
     @PostMapping("/add")
-    public Result<?> add(@RequestBody Notice notice) {
+    public Result<?> add(@RequestBody Notice notice, HttpSession session) {
+        SessionAuth.requireRole(session, "admin");
         int i = noticeService.addNewNotice(notice);
         if (i == 1) {
             return Result.success();
@@ -34,7 +37,8 @@ public class NoticeController {
      * 公告更新
      */
     @PutMapping("/update")
-    public Result<?> update(@RequestBody Notice notice) {
+    public Result<?> update(@RequestBody Notice notice, HttpSession session) {
+        SessionAuth.requireRole(session, "admin");
         int i = noticeService.updateNewNotice(notice);
         if (i == 1) {
             return Result.success();
@@ -47,7 +51,8 @@ public class NoticeController {
      * 公告删除
      */
     @DeleteMapping("/delete/{id}")
-    public Result<?> delete(@PathVariable Integer id) {
+    public Result<?> delete(@PathVariable Integer id, HttpSession session) {
+        SessionAuth.requireRole(session, "admin");
         int i = noticeService.deleteNotice(id);
         if (i == 1) {
             return Result.success();

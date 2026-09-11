@@ -28,18 +28,14 @@ public class AiRepairController {
     public Result<?> analyze(@Valid @RequestBody AiRepairAnalyzeRequest request, HttpSession session) {
         try {
             return Result.success(aiRepairService.analyze(request, session));
-        } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
             return Result.error("-1", e.getMessage());
         }
     }
 
     @GetMapping("/mine")
     public Result<?> mine(HttpSession session) {
-        try {
-            return Result.success(aiRepairService.mine(session));
-        } catch (SecurityException e) {
-            return Result.error("403", e.getMessage());
-        }
+        return Result.success(aiRepairService.mine(session));
     }
 
     @GetMapping("/pending")
@@ -47,11 +43,7 @@ public class AiRepairController {
                              @RequestParam(defaultValue = "10") Integer pageSize,
                              @RequestParam(defaultValue = "") String search,
                              HttpSession session) {
-        try {
-            return Result.success(aiRepairService.pending(pageNum, pageSize, search, session));
-        } catch (SecurityException e) {
-            return Result.error("403", e.getMessage());
-        }
+        return Result.success(aiRepairService.pending(pageNum, pageSize, search, session));
     }
 
     @PostMapping("/{requestId}/confirm")
@@ -60,7 +52,7 @@ public class AiRepairController {
                              HttpSession session) {
         try {
             return Result.success(aiRepairService.confirm(requestId, request, session));
-        } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
             return Result.error("-1", e.getMessage());
         }
     }
@@ -72,7 +64,7 @@ public class AiRepairController {
         try {
             aiRepairService.reject(requestId, request.getReason(), session);
             return Result.success();
-        } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
             return Result.error("-1", e.getMessage());
         }
     }
@@ -82,7 +74,7 @@ public class AiRepairController {
         try {
             aiRepairService.feedback(request, session);
             return Result.success();
-        } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
             return Result.error("-1", e.getMessage());
         }
     }
@@ -91,7 +83,7 @@ public class AiRepairController {
     public Result<?> metrics(HttpSession session) {
         try {
             return Result.success(aiRepairService.metrics(session));
-        } catch (IllegalStateException | SecurityException e) {
+        } catch (IllegalStateException e) {
             return Result.error("-1", e.getMessage());
         }
     }

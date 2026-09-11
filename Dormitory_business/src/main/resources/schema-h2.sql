@@ -210,9 +210,15 @@ INSERT INTO admin (username, password, name, gender, age, phone_num, email)
 VALUES ('admin', 'e8c7659e7d15fa797bebf6e5ec9af446', '系统管理员', '男', 30, '13800000000', 'admin@dorm.com');
 
 -- 楼宇
-INSERT INTO dorm_build (dormbuild_id, dormbuild_name, dormbuild_detail) VALUES
-(1, '1号楼', '男生宿舍楼，靠近东门和食堂'),
-(2, '2号楼', '女生宿舍楼，靠近图书馆和运动场');
+INSERT INTO dorm_build (dormbuild_id, dormbuild_name, dormbuild_detail)
+SELECT seed.dormbuild_id, seed.dormbuild_name, seed.dormbuild_detail
+FROM (
+    SELECT 1 dormbuild_id, '1号楼' dormbuild_name, '男生宿舍楼，靠近东门和食堂' dormbuild_detail
+    UNION ALL SELECT 2, '2号楼', '女生宿舍楼，靠近图书馆和运动场'
+) seed
+WHERE NOT EXISTS (
+    SELECT 1 FROM dorm_build existing WHERE existing.dormbuild_id = seed.dormbuild_id
+);
 
 -- 宿管账号（密码: 123456，MD5+盐值加密）
 INSERT INTO dorm_manager (username, password, dormbuild_id, name, gender, age, phone_num, email) VALUES

@@ -6,6 +6,8 @@ export default {
     data() {
         return {
             identity: "",
+            loginError: "",
+            submitting: false,
             form: {
                 username: "",
                 password: "",
@@ -23,16 +25,27 @@ export default {
     computed: {
         disabled() {
             const {username, password, identity} = this.form;
-            return Boolean(username && password && identity);
+            return Boolean(username && password && identity && !this.submitting);
         },
     },
     methods: {
+        selectRole(identity) {
+            this.form.identity = identity;
+            this.loginError = "";
+        },
         login() {
-            this.$refs.form.validate((valid) => {
-                if (valid) {
+            this.$refs.form.validate(async (valid) => {
+                if (valid && !this.submitting) {
+                    this.loginError = "";
+                    this.submitting = true;
                     this.identity = this.form.identity;
-                    request.post("/" + this.identity + "/login", this.form).then((res) => {
-                        if (res.code === "0") {
+                    try {
+                        const response = await request.post("/" + this.identity + "/login", this.form);
+                        // 兼容响应拦截器热更新前后的两种形态：Result 或 AxiosResponse<Result>。
+                        const res = response && response.data && response.code === undefined
+                            ? response.data
+                            : response;
+                        if (res && String(res.code) === "0") {
                             ElMessage({
                                 message: "登陆成功",
                                 type: "success",
@@ -42,12 +55,13 @@ export default {
                             window.sessionStorage.setItem("identity", JSON.stringify(this.form.identity));
                             this.$router.replace({path: this.form.identity === "stu" ? "/myRoomInfo" : "/home"});
                         } else {
-                            ElMessage({
-                                message: res.msg,
-                                type: "error",
-                            });
+                            this.loginError = res?.msg || "登录失败，请检查账号、密码和身份";
                         }
-                    });
+                    } catch (error) {
+                        this.loginError = error.response?.data?.msg || "无法连接后端服务，请确认后端已启动";
+                    } finally {
+                        this.submitting = false;
+                    }
                 }
             });
         },

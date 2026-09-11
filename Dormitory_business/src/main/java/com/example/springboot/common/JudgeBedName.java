@@ -2,18 +2,16 @@ package com.example.springboot.common;
 
 public class JudgeBedName {
 
-    private static String bedName;
-
     public static String getBedName(int num) {
         switch (num) {
             case 1:
-                return bedName = "first_bed";
+                return "first_bed";
             case 2:
-                return bedName = "second_bed";
+                return "second_bed";
             case 3:
-                return bedName = "third_bed";
+                return "third_bed";
             case 4:
-                return bedName = "fourth_bed";
+                return "fourth_bed";
             default:
                 return null;
         }

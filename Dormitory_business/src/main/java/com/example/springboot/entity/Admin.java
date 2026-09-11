@@ -3,6 +3,7 @@ package com.example.springboot.entity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,6 +21,7 @@ public class Admin {
 
     @TableId(value = "username")
     private String username;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @TableField(value = "password")
     private String password;
     @TableField(value = "name")

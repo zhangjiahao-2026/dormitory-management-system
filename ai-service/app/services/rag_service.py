@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import math
 import re
 from dataclasses import dataclass
@@ -104,6 +105,26 @@ def load_sop_chunks(knowledge_dir: Path) -> List[SopChunk]:
     return chunks
 
 
+def knowledge_fingerprint(chunks: Sequence[SopChunk]) -> str:
+    """Fingerprint both content and retrieval metadata, not just the chunk count."""
+    payload = [
+        {
+            "chunk_id": chunk.chunk_id,
+            "document_id": chunk.document_id,
+            "document": chunk.document,
+            "section": chunk.section,
+            "category": chunk.category,
+            "department": chunk.department,
+            "version": chunk.version,
+            "content": chunk.content,
+            "keywords": list(chunk.keywords),
+        }
+        for chunk in chunks
+    ]
+    encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
 class HashEmbeddingFunction:
     def __call__(self, input: Iterable[str]) -> List[List[float]]:
         return [hash_embedding(text) for text in input]
@@ -125,24 +146,30 @@ class RagService:
 
             self.persist_dir.mkdir(parents=True, exist_ok=True)
             client = chromadb.PersistentClient(path=str(self.persist_dir))
+            fingerprint = knowledge_fingerprint(self.chunks)
+            collection_metadata = {
+                "hnsw:space": "cosine",
+                "knowledge_fingerprint": fingerprint,
+            }
             self._collection = client.get_or_create_collection(
                 name="repair_sop",
                 embedding_function=HashEmbeddingFunction(),
-                metadata={"hnsw:space": "cosine"},
+                metadata=collection_metadata,
             )
-            if self._collection.count() != len(self.chunks):
-                if self._collection.count():
-                    client.delete_collection("repair_sop")
-                    self._collection = client.create_collection(
-                        name="repair_sop",
-                        embedding_function=HashEmbeddingFunction(),
-                        metadata={"hnsw:space": "cosine"},
-                    )
-                self._collection.add(
-                    ids=[chunk.chunk_id for chunk in self.chunks],
-                    documents=[chunk.content for chunk in self.chunks],
-                    metadatas=[self._metadata(chunk) for chunk in self.chunks],
+            stored_fingerprint = (self._collection.metadata or {}).get("knowledge_fingerprint")
+            if self._collection.count() != len(self.chunks) or stored_fingerprint != fingerprint:
+                client.delete_collection("repair_sop")
+                self._collection = client.create_collection(
+                    name="repair_sop",
+                    embedding_function=HashEmbeddingFunction(),
+                    metadata=collection_metadata,
                 )
+                if self.chunks:
+                    self._collection.add(
+                        ids=[chunk.chunk_id for chunk in self.chunks],
+                        documents=[chunk.content for chunk in self.chunks],
+                        metadatas=[self._metadata(chunk) for chunk in self.chunks],
+                    )
         except Exception:
             self._collection = None
 

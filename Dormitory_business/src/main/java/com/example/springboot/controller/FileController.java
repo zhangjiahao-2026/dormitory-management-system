@@ -2,6 +2,7 @@ package com.example.springboot.controller;
 
 import cn.hutool.core.io.FileUtil;
 import com.example.springboot.common.Result;
+import com.example.springboot.common.SessionAuth;
 import com.example.springboot.common.UID;
 import com.example.springboot.entity.Admin;
 import com.example.springboot.entity.DormManager;
@@ -9,6 +10,7 @@ import com.example.springboot.entity.Student;
 import com.example.springboot.service.AdminService;
 import com.example.springboot.service.DormManagerService;
 import com.example.springboot.service.StudentService;
+import com.example.springboot.service.dto.AvatarUpdateRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -81,15 +84,22 @@ public class FileController {
      * 将头像名称更新到学生数据库中
      */
     @PostMapping("/uploadAvatar/stu")
-    public Result<?> uploadStuAvatar(@RequestBody Student student) {
-        String avatar = student.getAvatar();
+    public Result<?> uploadStuAvatar(@RequestBody AvatarUpdateRequest request, HttpSession session) {
+        SessionAuth.requireRole(session, "stu");
+        SessionAuth.requireSelfOrAdmin(session, request.getUsername());
+        String avatar = request.getAvatar();
         if (avatar != null && !avatar.isEmpty()) {
             // 防止路径穿越
             if (avatar.contains("..") || avatar.contains("/") || avatar.contains("\\")) {
                 return Result.error("-1", "文件名不合法");
             }
+            Student student = studentService.getById(request.getUsername());
+            if (student == null) return Result.error("-1", "学生不存在");
+            student.setAvatar(avatar);
             int i = studentService.updateNewStudent(student);
             if (i == 1) {
+                student.setPassword(null);
+                session.setAttribute("User", student);
                 return Result.success(avatar);
             }
         }
@@ -97,14 +107,21 @@ public class FileController {
     }
 
     @PostMapping("/uploadAvatar/admin")
-    public Result<?> uploadAdminAvatar(@RequestBody Admin admin) {
-        String avatar = admin.getAvatar();
+    public Result<?> uploadAdminAvatar(@RequestBody AvatarUpdateRequest request, HttpSession session) {
+        SessionAuth.requireRole(session, "admin");
+        SessionAuth.requireSelfOrAdmin(session, request.getUsername());
+        String avatar = request.getAvatar();
         if (avatar != null && !avatar.isEmpty()) {
             if (avatar.contains("..") || avatar.contains("/") || avatar.contains("\\")) {
                 return Result.error("-1", "文件名不合法");
             }
+            Admin admin = adminService.getById(request.getUsername());
+            if (admin == null) return Result.error("-1", "管理员不存在");
+            admin.setAvatar(avatar);
             int i = adminService.updateAdmin(admin);
             if (i == 1) {
+                admin.setPassword(null);
+                session.setAttribute("User", admin);
                 return Result.success(avatar);
             }
         }
@@ -112,14 +129,21 @@ public class FileController {
     }
 
     @PostMapping("/uploadAvatar/dormManager")
-    public Result<?> uploadDormManagerAvatar(@RequestBody DormManager dormManager) {
-        String avatar = dormManager.getAvatar();
+    public Result<?> uploadDormManagerAvatar(@RequestBody AvatarUpdateRequest request, HttpSession session) {
+        SessionAuth.requireRole(session, "dormManager");
+        SessionAuth.requireSelfOrAdmin(session, request.getUsername());
+        String avatar = request.getAvatar();
         if (avatar != null && !avatar.isEmpty()) {
             if (avatar.contains("..") || avatar.contains("/") || avatar.contains("\\")) {
                 return Result.error("-1", "文件名不合法");
             }
+            DormManager dormManager = dormManagerService.getById(request.getUsername());
+            if (dormManager == null) return Result.error("-1", "宿管不存在");
+            dormManager.setAvatar(avatar);
             int i = dormManagerService.updateNewDormManager(dormManager);
             if (i == 1) {
+                dormManager.setPassword(null);
+                session.setAttribute("User", dormManager);
                 return Result.success(avatar);
             }
         }

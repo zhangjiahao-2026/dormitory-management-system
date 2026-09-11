@@ -2,11 +2,13 @@ package com.example.springboot.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.springboot.common.Result;
+import com.example.springboot.common.SessionAuth;
 import com.example.springboot.entity.Visitor;
 import com.example.springboot.service.VisitorService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
 
 @RestController
 @RequestMapping("/visitor")
@@ -19,7 +21,8 @@ public class VisitorController {
      * 访客添加
      */
     @PostMapping("/add")
-    public Result<?> add(@RequestBody Visitor visitor) {
+    public Result<?> add(@RequestBody Visitor visitor, HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
         int i = visitorService.addNewVisitor(visitor);
         if (i == 1) {
             return Result.success();
@@ -32,7 +35,8 @@ public class VisitorController {
      * 访客信息更新
      */
     @PutMapping("/update")
-    public Result<?> update(@RequestBody Visitor visitor) {
+    public Result<?> update(@RequestBody Visitor visitor, HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
         int i = visitorService.updateNewVisitor(visitor);
         if (i == 1) {
             return Result.success();
@@ -45,7 +49,8 @@ public class VisitorController {
      * 访客删除
      */
     @DeleteMapping("/delete/{id}")
-    public Result<?> delete(@PathVariable Integer id) {
+    public Result<?> delete(@PathVariable Integer id, HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
         int i = visitorService.deleteVisitor(id);
         if (i == 1) {
             return Result.success();
@@ -60,7 +65,9 @@ public class VisitorController {
     @GetMapping("/find")
     public Result<?> findPage(@RequestParam(defaultValue = "1") Integer pageNum,
                               @RequestParam(defaultValue = "10") Integer pageSize,
-                              @RequestParam(defaultValue = "") String search) {
+                              @RequestParam(defaultValue = "") String search,
+                              HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
         Page page = visitorService.find(pageNum, pageSize, search);
         if (page != null) {
             return Result.success(page);

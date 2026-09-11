@@ -9,6 +9,8 @@ public interface AdjustRoomService extends IService<AdjustRoom> {
     //查询调宿申请
     Page find(Integer pageNum, Integer pageSize, String search);
 
+    Page findByDormBuild(Integer pageNum, Integer pageSize, String search, Integer dormBuildId);
+
     //删除调宿申请
     int deleteAdjustment(Integer id);
 

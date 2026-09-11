@@ -67,7 +67,9 @@ public class DormBuildImpl extends ServiceImpl<DormBuildMapper, DormBuild> imple
     @Override
     public List<DormBuild> getBuildingId() {
         QueryWrapper<DormBuild> qw = new QueryWrapper<>();
-        qw.select("dormbuild_id");
+        qw.select("dormbuild_id", "MAX(dormbuild_name) AS dormbuild_name")
+                .groupBy("dormbuild_id")
+                .orderByAsc("dormbuild_id");
         List<DormBuild> dormBuilds = dormBuildMapper.selectList(qw);
         return dormBuilds;
     }

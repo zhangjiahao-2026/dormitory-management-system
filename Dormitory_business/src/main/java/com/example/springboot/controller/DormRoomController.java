@@ -2,11 +2,13 @@ package com.example.springboot.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.springboot.common.Result;
+import com.example.springboot.common.SessionAuth;
 import com.example.springboot.entity.DormRoom;
 import com.example.springboot.service.DormRoomService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
 
 @RestController
@@ -20,7 +22,9 @@ public class DormRoomController {
      * 添加房间
      */
     @PostMapping("/add")
-    public Result<?> add(@RequestBody DormRoom dormRoom) {
+    public Result<?> add(@RequestBody DormRoom dormRoom, HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
+        SessionAuth.requireManagedBuild(session, dormRoom.getDormBuildId());
         int i = dormRoomService.addNewRoom(dormRoom);
         if (i == 1) {
             return Result.success();
@@ -33,7 +37,12 @@ public class DormRoomController {
      * 更新房间
      */
     @PutMapping("/update")
-    public Result<?> update(@RequestBody DormRoom dormRoom) {
+    public Result<?> update(@RequestBody DormRoom dormRoom, HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
+        DormRoom stored = dormRoomService.getById(dormRoom.getDormRoomId());
+        if (stored == null) return Result.error("-1", "房间不存在");
+        SessionAuth.requireManagedBuild(session, stored.getDormBuildId());
+        dormRoom.setDormBuildId(stored.getDormBuildId());
         int i = dormRoomService.updateNewRoom(dormRoom);
         if (i == 1) {
             return Result.success();
@@ -46,7 +55,11 @@ public class DormRoomController {
      * 删除房间
      */
     @DeleteMapping("/delete/{dormRoomId}")
-    public Result<?> delete(@PathVariable Integer dormRoomId) {
+    public Result<?> delete(@PathVariable Integer dormRoomId, HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
+        DormRoom stored = dormRoomService.getById(dormRoomId);
+        if (stored == null) return Result.error("-1", "房间不存在");
+        SessionAuth.requireManagedBuild(session, stored.getDormBuildId());
         int i = dormRoomService.deleteRoom(dormRoomId);
         if (i == 1) {
             return Result.success();
@@ -61,8 +74,12 @@ public class DormRoomController {
     @GetMapping("/find")
     public Result<?> findPage(@RequestParam(defaultValue = "1") Integer pageNum,
                               @RequestParam(defaultValue = "10") Integer pageSize,
-                              @RequestParam(defaultValue = "") String search) {
-        Page page = dormRoomService.find(pageNum, pageSize, search);
+                              @RequestParam(defaultValue = "") String search,
+                              HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
+        Page page = SessionAuth.hasRole(session, "admin")
+                ? dormRoomService.find(pageNum, pageSize, search)
+                : dormRoomService.findByDormBuild(pageNum, pageSize, search, SessionAuth.dormBuildId(session));
         if (page != null) {
             return Result.success(page);
         } else {
@@ -87,8 +104,16 @@ public class DormRoomController {
      * 删除床位学生信息
      */
     @DeleteMapping("/delete/{bedName}/{dormRoomId}/{calCurrentNum}")
-    public Result<?> deleteBedInfo(@PathVariable String bedName, @PathVariable Integer dormRoomId, @PathVariable int calCurrentNum) {
-        int i = dormRoomService.deleteBedInfo(bedName, dormRoomId, calCurrentNum);
+    public Result<?> deleteBedInfo(@PathVariable String bedName, @PathVariable Integer dormRoomId,
+                                   @PathVariable int calCurrentNum, HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
+        DormRoom stored = dormRoomService.getById(dormRoomId);
+        if (stored == null) return Result.error("-1", "房间不存在");
+        SessionAuth.requireManagedBuild(session, stored.getDormBuildId());
+        if (!java.util.Set.of("first_bed", "second_bed", "third_bed", "fourth_bed").contains(bedName)) {
+            return Result.error("400", "床位名称不合法");
+        }
+        int i = dormRoomService.deleteBedInfo(bedName, dormRoomId, stored.getCurrentCapacity());
         if (i == 1) {
             return Result.success();
         } else {
@@ -144,7 +169,8 @@ public class DormRoomController {
      * 学生功能： 我的宿舍
      */
     @GetMapping("/getMyRoom/{name}")
-    public Result<?> getMyRoom(@PathVariable String name) {
+    public Result<?> getMyRoom(@PathVariable String name, HttpSession session) {
+        if (SessionAuth.hasRole(session, "stu")) SessionAuth.requireSelfOrAdmin(session, name);
         DormRoom dormRoom = dormRoomService.judgeHadBed(name);
         if (dormRoom != null) {
             return Result.success(dormRoom);

@@ -10,6 +10,7 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 
 @dataclass(frozen=True)
 class Settings:
+    environment: str = os.getenv("AI_ENV", "development").strip().lower()
     knowledge_dir: Path = Path(os.getenv("AI_KNOWLEDGE_DIR", BASE_DIR / "knowledge"))
     data_dir: Path = Path(os.getenv("AI_DATA_DIR", BASE_DIR / "data"))
     llm_api_key: str = os.getenv("AI_LLM_API_KEY", "").strip()
@@ -19,6 +20,10 @@ class Settings:
     request_timeout_seconds: float = float(os.getenv("AI_LLM_TIMEOUT_SECONDS", "8"))
     confidence_threshold: float = float(os.getenv("AI_CONFIDENCE_THRESHOLD", "0.75"))
     retrieval_threshold: float = float(os.getenv("AI_RETRIEVAL_THRESHOLD", "0.18"))
+
+    def validate_security(self) -> None:
+        if self.environment in {"production", "prod"} and not self.internal_token:
+            raise RuntimeError("AI_SERVICE_TOKEN must be configured in production")
 
 
 settings = Settings()

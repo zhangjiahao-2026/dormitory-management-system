@@ -38,6 +38,15 @@ public class AdjustRoomServiceImpl extends ServiceImpl<AdjustRoomMapper, AdjustR
         return orderPage;
     }
 
+    @Override
+    public Page findByDormBuild(Integer pageNum, Integer pageSize, String search, Integer dormBuildId) {
+        Page page = new Page<>(pageNum, pageSize);
+        QueryWrapper<AdjustRoom> qw = new QueryWrapper<>();
+        qw.like("username", search)
+                .inSql("currentroom_id", "SELECT dormroom_id FROM dorm_room WHERE dormbuild_id = " + dormBuildId);
+        return adjustRoomMapper.selectPage(page, qw);
+    }
+
     /**
      * 删除调宿申请
      */

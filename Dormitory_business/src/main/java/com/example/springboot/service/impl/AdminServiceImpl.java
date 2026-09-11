@@ -2,7 +2,7 @@ package com.example.springboot.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.springboot.common.MD5Util;
+import com.example.springboot.common.PasswordUtil;
 import com.example.springboot.entity.Admin;
 import com.example.springboot.mapper.AdminMapper;
 import com.example.springboot.service.AdminService;
@@ -25,10 +25,14 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
      */
     @Override
     public Admin adminLogin(String username, String password) {
-        QueryWrapper<Admin> qw = new QueryWrapper<>();
-        qw.eq("username", username);
-        qw.eq("password", MD5Util.md5(password));
-        Admin admin = adminMapper.selectOne(qw);
+        Admin admin = adminMapper.selectById(username);
+        if (admin == null || !PasswordUtil.matches(password, admin.getPassword())) {
+            return null;
+        }
+        if (PasswordUtil.needsUpgrade(admin.getPassword())) {
+            admin.setPassword(PasswordUtil.encode(password));
+            adminMapper.updateById(admin);
+        }
         return admin;
     }
 
@@ -37,6 +41,15 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
      */
     @Override
     public int updateAdmin(Admin admin) {
+        Admin stored = adminMapper.selectById(admin.getUsername());
+        if (stored == null) {
+            return 0;
+        }
+        if (admin.getPassword() == null || admin.getPassword().isBlank()) {
+            admin.setPassword(stored.getPassword());
+        } else if (!PasswordUtil.isBcrypt(admin.getPassword())) {
+            admin.setPassword(PasswordUtil.encode(admin.getPassword()));
+        }
         int i = adminMapper.updateById(admin);
         return i;
     }

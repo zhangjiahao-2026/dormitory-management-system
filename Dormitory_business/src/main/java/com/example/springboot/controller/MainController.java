@@ -1,6 +1,7 @@
 package com.example.springboot.controller;
 
 import com.example.springboot.common.Result;
+import com.example.springboot.service.dto.AuthenticatedUserResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,7 +34,7 @@ public class MainController {
         Object User = session.getAttribute("User");
 
         if (User != null) {
-            return Result.success(User);
+            return Result.success(AuthenticatedUserResponse.from(User));
         } else {
             return Result.error("-1", "加载失败");
         }
@@ -44,8 +45,7 @@ public class MainController {
      */
     @GetMapping("/signOut")
     public Result<?> signOut(HttpSession session) {
-        session.removeAttribute("User");
-        session.removeAttribute("Identity");
+        session.invalidate();
         return Result.success();
     }
 }

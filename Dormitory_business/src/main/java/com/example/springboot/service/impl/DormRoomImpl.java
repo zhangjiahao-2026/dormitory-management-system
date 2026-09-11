@@ -10,6 +10,7 @@ import com.example.springboot.entity.DormRoom;
 import com.example.springboot.mapper.DormRoomMapper;
 import com.example.springboot.service.DormRoomService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Map;
@@ -55,6 +56,14 @@ public class DormRoomImpl extends ServiceImpl<DormRoomMapper, DormRoom> implemen
         return roomPage;
     }
 
+    @Override
+    public Page findByDormBuild(Integer pageNum, Integer pageSize, String search, Integer dormBuildId) {
+        Page page = new Page<>(pageNum, pageSize);
+        QueryWrapper<DormRoom> qw = new QueryWrapper<>();
+        qw.like("dormroom_id", search).eq("dormbuild_id", dormBuildId);
+        return dormRoomMapper.selectPage(page, qw);
+    }
+
     /**
      * 更新房间
      */
@@ -81,7 +90,7 @@ public class DormRoomImpl extends ServiceImpl<DormRoomMapper, DormRoom> implemen
         UpdateWrapper updateWrapper = new UpdateWrapper();
         updateWrapper.eq("dormroom_id", dormRoomId);
         updateWrapper.set(bedName, null);
-        updateWrapper.set("current_capacity", calCurrentNum - 1);
+        updateWrapper.set("current_capacity", Math.max(0, calCurrentNum - 1));
         int update = dormRoomMapper.update(null, updateWrapper);
         return update;
 
@@ -131,6 +140,7 @@ public class DormRoomImpl extends ServiceImpl<DormRoomMapper, DormRoom> implemen
      * 根据调宿申请表对房间表内的学生床位进行调整
      */
     @Override
+    @Transactional
     public int adjustRoomUpdate(AdjustRoom adjustRoom) {
         //调宿人
         String username = adjustRoom.getUsername();
@@ -142,12 +152,22 @@ public class DormRoomImpl extends ServiceImpl<DormRoomMapper, DormRoom> implemen
         int towardsRoomId = adjustRoom.getTowardsRoomId();
         //目标目标房间号
         String towardsBedName = JudgeBedName.getBedName(adjustRoom.getTowardsBedId());
+        if (currentBedName == null || towardsBedName == null) {
+            throw new IllegalArgumentException("床位号不合法");
+        }
+        if (currentRoomId == towardsRoomId) {
+            throw new IllegalArgumentException("目标房间不能与当前房间相同");
+        }
         QueryWrapper qw = new QueryWrapper();
         qw.eq("dormroom_id", currentRoomId);
-        qw.isNotNull(currentBedName);
+        qw.eq(currentBedName, username);
         DormRoom dormRoom1 = dormRoomMapper.selectOne(qw);
         if (dormRoom1 == null) {
-            return -2;
+            throw new IllegalStateException("学生当前床位已发生变化");
+        }
+        DormRoom dormRoom2 = dormRoomMapper.selectById(towardsRoomId);
+        if (dormRoom2 == null || bedOccupant(dormRoom2, adjustRoom.getTowardsBedId()) != null) {
+            throw new IllegalStateException("目标床位已被占用");
         }
         int currentCapacity1 = calNum(dormRoom1);
         UpdateWrapper uw1 = new UpdateWrapper();
@@ -155,17 +175,28 @@ public class DormRoomImpl extends ServiceImpl<DormRoomMapper, DormRoom> implemen
         uw1.set(currentBedName, null);
         uw1.set("current_capacity", currentCapacity1 - 1);
         int result1 = dormRoomMapper.update(null, uw1);
-        DormRoom dormRoom2 = dormRoomMapper.selectById(towardsRoomId);
         int currentCapacity2 = calNum(dormRoom2);
         if (result1 == 1) {
             UpdateWrapper uw2 = new UpdateWrapper();
             uw2.eq("dormroom_id", towardsRoomId);
+            uw2.isNull(towardsBedName);
             uw2.set(towardsBedName, username);
             uw2.set("current_capacity", currentCapacity2 + 1);
             int result2 = dormRoomMapper.update(null, uw2);
-            return result2;
+            if (result2 == 1) return 1;
+            throw new IllegalStateException("目标床位已被占用");
         }
-        return -1;
+        throw new IllegalStateException("学生当前床位已发生变化");
+    }
+
+    private String bedOccupant(DormRoom room, int bedNumber) {
+        switch (bedNumber) {
+            case 1: return room.getFirstBed();
+            case 2: return room.getSecondBed();
+            case 3: return room.getThirdBed();
+            case 4: return room.getFourthBed();
+            default: return null;
+        }
     }
 
 

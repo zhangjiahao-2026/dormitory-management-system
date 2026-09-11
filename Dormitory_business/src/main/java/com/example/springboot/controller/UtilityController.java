@@ -2,6 +2,7 @@ package com.example.springboot.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.springboot.common.Result;
+import com.example.springboot.common.SessionAuth;
 import com.example.springboot.entity.UtilityConfig;
 import com.example.springboot.service.UtilityService;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +23,7 @@ public class UtilityController {
                           @RequestParam(defaultValue = "10") Integer pageSize,
                           @RequestParam(defaultValue = "") String search,
                           HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
         Page<Map<String, Object>> page = utilityService.findLatest(pageNum, pageSize, search, session);
         return Result.success(page);
     }
@@ -43,12 +45,14 @@ public class UtilityController {
 
     @PutMapping("/config")
     public Result<?> updateConfig(@RequestBody UtilityConfig config, HttpSession session) {
+        SessionAuth.requireRole(session, "admin");
         int i = utilityService.updateConfig(config, session);
         return i == 1 ? Result.success() : Result.error("-1", "无权限修改水电配置");
     }
 
     @PostMapping("/simulate")
     public Result<?> simulate(HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
         int count = utilityService.simulate("MANUAL", session);
         return Result.success(count);
     }
@@ -57,16 +61,19 @@ public class UtilityController {
     public Result<?> alerts(@RequestParam(defaultValue = "1") Integer pageNum,
                             @RequestParam(defaultValue = "10") Integer pageSize,
                             HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
         return Result.success(utilityService.findAlerts(pageNum, pageSize, session));
     }
 
     @GetMapping("/homeAlerts")
     public Result<?> homeAlerts(HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
         return Result.success(utilityService.homeAlerts(session));
     }
 
     @PutMapping("/alerts/{id}/handle")
     public Result<?> handleAlert(@PathVariable Integer id, HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
         int i = utilityService.handleAlert(id, session);
         return i == 1 ? Result.success() : Result.error("-1", "告警处理失败");
     }

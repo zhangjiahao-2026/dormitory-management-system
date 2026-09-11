@@ -1,43 +1,60 @@
 <template>
-  <div id="echarts-dom" class="home-chart"></div>
+  <div ref="chart" class="home-chart" role="img" aria-label="各宿舍楼入住学生人数柱状图"></div>
 </template>
 
 <script>
 import * as echarts from 'echarts';
 import request from "@/utils/request";
-
-require("echarts/theme/macarons");
+import {markRaw} from "vue";
 
 export default {
   name: "home_echarts",
   data() {
     return {
       option: {
-        color: ['#23b7a4'],
-        barWidth: 34,
+        animationDuration: 650,
         tooltip: {
+          trigger: 'axis',
+          axisPointer: { type: 'shadow' },
           backgroundColor: 'rgba(23,50,58,.92)',
           borderWidth: 0,
+          padding: [10, 12],
+          formatter(params) {
+            const item = params[0]
+            return `${item.axisValue}<br/><strong>${item.value}</strong> 人`
+          },
           textStyle: {
             color: '#ffffff'
           }
         },
         xAxis: {
+          type: 'category',
           data: [],
+          axisTick: { show: false },
           axisLine: {
             lineStyle: {
               color: '#d7ecea'
             }
           },
           axisLabel: {
-            color: '#78909a'
+            color: '#5f7b84',
+            fontSize: 12,
+            margin: 14,
+            interval: 0
           }
         },
         yAxis: {
           type: "value",
           min: 0,
           minInterval: 1,
-          interval: 1,
+          splitNumber: 5,
+          name: '人数',
+          nameTextStyle: {
+            color: '#78909a',
+            padding: [0, 24, 8, 0]
+          },
+          axisLine: { show: false },
+          axisTick: { show: false },
           splitLine: {
             lineStyle: {
               color: '#e7f4f1',
@@ -53,6 +70,21 @@ export default {
             name: '人数',
             type: 'bar',
             data: [],
+            barMaxWidth: 52,
+            showBackground: true,
+            backgroundStyle: {
+              color: 'rgba(35,183,164,.055)',
+              borderRadius: [8, 8, 0, 0]
+            },
+            label: {
+              show: true,
+              position: 'top',
+              distance: 8,
+              color: '#36515a',
+              fontSize: 12,
+              fontWeight: 700,
+              formatter: '{c} 人'
+            },
             itemStyle: {
               borderRadius: [8, 8, 0, 0],
               color: {
@@ -67,23 +99,25 @@ export default {
                   { offset: 1, color: '#a7df73' }
                 ]
               }
+            },
+            emphasis: {
+              itemStyle: {
+                shadowBlur: 12,
+                shadowColor: 'rgba(35,183,164,.24)'
+              }
             }
           },
         ],
         grid: {
-          x: 40,
-          y: 40,
-          x2: 40,
-          y2: 40,
-          borderWidth: 10,
-          top: '10%',
-          bottom: '0%',
+          left: 18,
+          right: 18,
+          top: 42,
+          bottom: 10,
           containLabel: true
         }
       },
-      myEcharts: '',
-      chartWidth: '',
-      chartHeight: '',
+      myEcharts: null,
+      resizeObserver: null,
     };
   },
   created() {
@@ -91,6 +125,10 @@ export default {
   },
   mounted() {
     this.createEcharts()
+  },
+  beforeUnmount() {
+    if (this.resizeObserver) this.resizeObserver.disconnect()
+    if (this.myEcharts) this.myEcharts.dispose()
   },
   watch: {
     //观察option的变化
@@ -111,21 +149,19 @@ export default {
   },
   methods: {
     createEcharts() {
-      const chartDmo = document.getElementById("echarts-dom");
-      this.myEcharts = echarts.init(chartDmo, null);
+      if (!this.$refs.chart || this.myEcharts) return
+      // ECharts 实例包含复杂内部对象，不能让 Vue 深度代理。
+      this.myEcharts = markRaw(echarts.init(this.$refs.chart));
       this.myEcharts.setOption(this.option, true);
+      this.resizeObserver = new ResizeObserver(() => this.myEcharts && this.myEcharts.resize())
+      this.resizeObserver.observe(this.$refs.chart)
     },
     getBuildingNum() {
-      //xAxis.data
-      request.get("/building/getBuildingName").then(res => {
+      request.get("/building/occupancy").then(res => {
         if (res.code === '0') {
-          this.option.xAxis.data = res.data
-          //series.data
-          request.get("/room/getEachBuildingStuNum/" + res.data.length).then(result => {
-            if (result.code === '0') {
-              this.option.series[0].data = result.data
-            }
-          })
+          const rows = Array.isArray(res.data) ? res.data : []
+          this.option.xAxis.data = rows.map(item => item.dormBuildName || `${item.dormBuildId}号楼`)
+          this.option.series[0].data = rows.map(item => Number(item.studentCount) || 0)
         }
       });
     },
@@ -136,7 +172,8 @@ export default {
 <style scoped>
 .home-chart {
   width: 100%;
-  min-width: 320px;
-  height: 500px;
+  min-width: 0;
+  height: 100%;
+  min-height: 320px;
 }
 </style>

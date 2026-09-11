@@ -1,4 +1,5 @@
 from pathlib import Path
+import shutil
 
 from dataclasses import replace
 
@@ -46,3 +47,24 @@ def test_knowledge_fingerprint_changes_when_content_changes_without_count_change
     changed[0] = replace(changed[0], content=changed[0].content + " 修订")
     assert len(changed) == len(chunks)
     assert knowledge_fingerprint(changed) != knowledge_fingerprint(chunks)
+
+
+def test_persistent_index_rebuilds_when_content_changes_without_count_change(tmp_path):
+    knowledge_dir = tmp_path / "knowledge"
+    persist_dir = tmp_path / "chroma"
+    shutil.copytree(KNOWLEDGE, knowledge_dir)
+
+    first = RagService(knowledge_dir, persist_dir)
+    old_document = first._collection.get(ids=["electrical-1"])["documents"][0]
+
+    electrical_path = knowledge_dir / "electrical.md"
+    original = electrical_path.read_text(encoding="utf-8")
+    revised = original.replace("立即保持现场断电", "立即切断现场电源并疏散周边人员", 1)
+    electrical_path.write_text(revised, encoding="utf-8")
+
+    second = RagService(knowledge_dir, persist_dir)
+    new_document = second._collection.get(ids=["electrical-1"])["documents"][0]
+
+    assert len(first.chunks) == len(second.chunks)
+    assert old_document != new_document
+    assert "立即切断现场电源并疏散周边人员" in new_document

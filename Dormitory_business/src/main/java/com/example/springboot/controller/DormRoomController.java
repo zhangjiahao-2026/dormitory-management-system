@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/room")
@@ -125,11 +128,13 @@ public class DormRoomController {
      * 床位信息，查询该学生是否已有床位
      */
     @GetMapping("/judgeHadBed/{value}")
-    public Result<?> judgeHadBed(@PathVariable String value) {
+    public Result<?> judgeHadBed(@PathVariable String value, HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
         DormRoom dormRoom = dormRoomService.judgeHadBed(value);
         if (dormRoom == null) {
             return Result.success();
         } else {
+            SessionAuth.requireManagedBuild(session, dormRoom.getDormBuildId());
             return Result.error("-1", "该学生已有宿舍");
         }
     }
@@ -170,10 +175,16 @@ public class DormRoomController {
      */
     @GetMapping("/getMyRoom/{name}")
     public Result<?> getMyRoom(@PathVariable String name, HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager", "stu");
         if (SessionAuth.hasRole(session, "stu")) SessionAuth.requireSelfOrAdmin(session, name);
         DormRoom dormRoom = dormRoomService.judgeHadBed(name);
         if (dormRoom != null) {
-            return Result.success(dormRoom);
+            if (SessionAuth.hasRole(session, "dormManager")) {
+                SessionAuth.requireManagedBuild(session, dormRoom.getDormBuildId());
+            }
+            return Result.success(SessionAuth.hasRole(session, "stu")
+                    ? studentRoomSummary(dormRoom, name)
+                    : dormRoom);
         } else {
             return Result.error("-1", "不存在该生");
         }
@@ -183,10 +194,11 @@ public class DormRoomController {
      * 检查房间是否满员
      */
     @GetMapping("/checkRoomState/{dormRoomId}")
-    public Result<?> checkRoomState(@PathVariable Integer dormRoomId) {
+    public Result<?> checkRoomState(@PathVariable Integer dormRoomId, HttpSession session) {
+        requireManagedRoom(dormRoomId, session);
         DormRoom dormRoom = dormRoomService.checkRoomState(dormRoomId);
         if (dormRoom != null) {
-            return Result.success(dormRoom);
+            return Result.success();
         } else {
             return Result.error("-1", "该房间人满了");
         }
@@ -196,10 +208,13 @@ public class DormRoomController {
      * 检查床位是否已经有人
      */
     @GetMapping("/checkBedState/{dormRoomId}/{bedNum}")
-    public Result<?> getMyRoom(@PathVariable Integer dormRoomId, @PathVariable int bedNum) {
+    public Result<?> checkBedState(@PathVariable Integer dormRoomId, @PathVariable int bedNum,
+                                   HttpSession session) {
+        requireManagedRoom(dormRoomId, session);
+        requireBedNumber(bedNum);
         DormRoom dormRoom = dormRoomService.checkBedState(dormRoomId, bedNum);
         if (dormRoom != null) {
-            return Result.success(dormRoom);
+            return Result.success();
         } else {
             return Result.error("-1", "该床位已有人");
         }
@@ -209,12 +224,70 @@ public class DormRoomController {
      * 检查房间是否满员
      */
     @GetMapping("/checkRoomExist/{dormRoomId}")
-    public Result<?> checkRoomExist(@PathVariable Integer dormRoomId) {
-        DormRoom dormRoom = dormRoomService.checkRoomExist(dormRoomId);
-        if (dormRoom != null) {
-            return Result.success(dormRoom);
-        } else {
-            return Result.error("-1", "不存在该房间");
+    public Result<?> checkRoomExist(@PathVariable Integer dormRoomId, HttpSession session) {
+        requireManagedRoom(dormRoomId, session);
+        return Result.success();
+    }
+
+    /** 学生调宿表单使用的最小化房间可用性检查，不返回床位人员信息。 */
+    @GetMapping("/availability/{dormRoomId}")
+    public Result<?> roomAvailability(@PathVariable Integer dormRoomId, HttpSession session) {
+        SessionAuth.requireRole(session, "stu");
+        DormRoom stored = dormRoomService.getById(dormRoomId);
+        if (stored == null) return Result.error("-1", "不存在该房间");
+        return dormRoomService.checkRoomState(dormRoomId) != null
+                ? Result.success()
+                : Result.error("-1", "该房间人满了");
+    }
+
+    /** 学生调宿表单使用的最小化床位可用性检查。 */
+    @GetMapping("/availability/{dormRoomId}/{bedNum}")
+    public Result<?> bedAvailability(@PathVariable Integer dormRoomId, @PathVariable int bedNum,
+                                     HttpSession session) {
+        SessionAuth.requireRole(session, "stu");
+        requireBedNumber(bedNum);
+        if (dormRoomService.getById(dormRoomId) == null) return Result.error("-1", "不存在该房间");
+        return dormRoomService.checkBedState(dormRoomId, bedNum) != null
+                ? Result.success()
+                : Result.error("-1", "该床位已有人");
+    }
+
+    private DormRoom requireManagedRoom(Integer dormRoomId, HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
+        DormRoom room = dormRoomService.getById(dormRoomId);
+        if (room == null) throw new IllegalArgumentException("不存在该房间");
+        SessionAuth.requireManagedBuild(session, room.getDormBuildId());
+        return room;
+    }
+
+    private void requireBedNumber(int bedNum) {
+        if (bedNum < 1 || bedNum > 4) throw new IllegalArgumentException("床位号不合法");
+    }
+
+    private Map<String, Object> studentRoomSummary(DormRoom room, String username) {
+        Map<String, Object> summary = new LinkedHashMap<>();
+        summary.put("dormRoomId", room.getDormRoomId());
+        summary.put("dormBuildId", room.getDormBuildId());
+        summary.put("floorNum", room.getFloorNum());
+        summary.put("maxCapacity", room.getMaxCapacity());
+        summary.put("currentCapacity", room.getCurrentCapacity());
+        List<String> occupants = List.of(
+                room.getFirstBed() == null ? "" : room.getFirstBed(),
+                room.getSecondBed() == null ? "" : room.getSecondBed(),
+                room.getThirdBed() == null ? "" : room.getThirdBed(),
+                room.getFourthBed() == null ? "" : room.getFourthBed()
+        );
+        List<Map<String, Object>> beds = new ArrayList<>();
+        for (int index = 0; index < occupants.size(); index++) {
+            String occupant = occupants.get(index);
+            Map<String, Object> bed = new LinkedHashMap<>();
+            bed.put("bedNumber", index + 1);
+            bed.put("occupied", !occupant.isEmpty());
+            bed.put("mine", username.equals(occupant));
+            beds.add(bed);
+            if (username.equals(occupant)) summary.put("ownBedNumber", index + 1);
         }
+        summary.put("beds", beds);
+        return summary;
     }
 }

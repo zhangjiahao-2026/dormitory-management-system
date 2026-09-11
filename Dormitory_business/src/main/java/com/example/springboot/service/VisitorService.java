@@ -13,6 +13,8 @@ public interface VisitorService extends IService<Visitor> {
     //查询
     Page find(Integer pageNum, Integer pageSize, String search);
 
+    Page findByDormBuild(Integer pageNum, Integer pageSize, String search, Integer dormBuildId);
+
     //更新订单信息
     int updateNewVisitor(Visitor visitor);
 

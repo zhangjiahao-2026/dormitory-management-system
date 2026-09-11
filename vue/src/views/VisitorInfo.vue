@@ -37,6 +37,9 @@
           />
           <el-table-column label="手机号" prop="phoneNum" width="200px"/>
           <el-table-column label="来源地" prop="originCity" sortable width="140px"/>
+          <el-table-column label="楼栋" prop="dormBuildId" width="90px"/>
+          <el-table-column label="房间" prop="dormRoomId" width="110px"/>
+          <el-table-column label="登记人" prop="registrar" width="130px"/>
           <el-table-column label="来访时间" prop="visitTime" sortable width="220px"/>
           <el-table-column label="备注" prop="content" sortable/>
           <!--      操作栏-->
@@ -80,6 +83,12 @@
               </el-form-item>
               <el-form-item label="来源地" prop="originCity">
                 <el-input v-model="form.originCity" clearable style="width: 50%"></el-input>
+              </el-form-item>
+              <el-form-item label="被访楼栋" prop="dormBuildId">
+                <el-input-number v-model="form.dormBuildId" :disabled="isDormManager" :min="1"/>
+              </el-form-item>
+              <el-form-item label="被访房间" prop="dormRoomId">
+                <el-input-number v-model="form.dormRoomId" :min="1"/>
               </el-form-item>
               <el-form-item label="来访时间" prop="visitTime">
                 <el-date-picker

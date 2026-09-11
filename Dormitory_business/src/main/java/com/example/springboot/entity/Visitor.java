@@ -33,5 +33,11 @@ public class Visitor {
     private String visitTime;
     @TableField("content")
     private String content;
+    @TableField("dormbuild_id")
+    private Integer dormBuildId;
+    @TableField("dormroom_id")
+    private Integer dormRoomId;
+    @TableField("registrar")
+    private String registrar;
 
 }

@@ -19,7 +19,7 @@
         <el-col :span="4"><el-statistic title="分析请求" :value="metrics.totalRequests || 0"/></el-col>
         <el-col :span="4"><el-statistic title="成功率" :value="metricPercent(metrics.successRate)" suffix="%"/></el-col>
         <el-col :span="4"><el-statistic title="平均延迟" :value="metrics.averageLatencyMs || 0" suffix="ms"/></el-col>
-        <el-col :span="4"><el-statistic title="结构化输出" :value="metricPercent(metrics.structuredOutputRate)" suffix="%"/></el-col>
+        <el-col :span="4"><el-statistic title="最终结构合法率" :value="metricPercent(metrics.structuredOutputRate)" suffix="%"/></el-col>
         <el-col :span="4"><el-statistic title="人工复核" :value="metricPercent(metrics.humanReviewRate)" suffix="%"/></el-col>
         <el-col :span="4"><el-statistic title="正向反馈" :value="metricPercent(metrics.positiveFeedbackRate)" suffix="%"/></el-col>
       </el-row>

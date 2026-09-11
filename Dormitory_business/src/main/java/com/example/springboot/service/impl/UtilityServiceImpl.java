@@ -65,9 +65,8 @@ public class UtilityServiceImpl implements UtilityService {
 
     @Override
     public List<?> history(Integer dormRoomId, HttpSession session) {
-        Integer dormBuildId = visibleDormBuildId(session);
         DormRoom room = dormRoomMapper.selectById(dormRoomId);
-        if (room == null || (dormBuildId != null && !dormBuildId.equals(room.getDormBuildId()))) {
+        if (!canViewRoom(room, session)) {
             return new ArrayList<>();
         }
         QueryWrapper<UtilityUsage> wrapper = new QueryWrapper<>();

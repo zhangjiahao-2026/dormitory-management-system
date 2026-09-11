@@ -18,6 +18,7 @@ if str(ROOT) not in sys.path:
 
 from app.config import Settings
 from app.schemas.ticket import TicketAnalyzeRequest
+from app.schemas.ticket import TicketAnalyzeResponse
 from app.services.classifier import TicketClassifier
 from app.services.rag_service import RagService
 from app.services.workflow import RepairWorkflow
@@ -45,6 +46,7 @@ def evaluate(dataset_path: Path = ROOT / "evaluation" / "dataset.json") -> Dict[
     refusal_correct = 0  # 实际没有给出建议的数量
     review_cases = 0  # 应当转人工的用例数
     review_correct = 0  # 实际标记了人工复核的数量
+    valid_local_structures = 0  # 本地规则结果通过响应 Schema 校验的数量
     details = []
 
     for case in cases:
@@ -55,6 +57,8 @@ def evaluate(dataset_path: Path = ROOT / "evaluation" / "dataset.json") -> Dict[
             description=case["description"],
             user_id="evaluation",
         ))
+        TicketAnalyzeResponse.parse_obj(result.dict())
+        valid_local_structures += 1
         # 1) 分类准确率：全部用例都参与
         category_correct += result.category.value == case["expected_category"]
         # 2) 紧急召回：只统计预期为 EMERGENCY 的，漏标比多标更危险
@@ -88,8 +92,7 @@ def evaluate(dataset_path: Path = ROOT / "evaluation" / "dataset.json") -> Dict[
             "classificationAccuracy": rate(category_correct, len(cases)),
             "emergencyRecall": rate(emergency_recalled, emergencies),
             "top3SopHitRate": rate(retrieval_hits, retrieval_cases),
-            # 本地规则一定返回合法结构化结果；接 LLM 后这项才有实际意义
-            "structuredOutputRate": 1.0,
+            "localRuleSchemaValidityRate": rate(valid_local_structures, len(cases)),
             "correctRefusalRate": rate(refusal_correct, refusal_cases),
             "humanReviewRecall": rate(review_correct, review_cases),
         },

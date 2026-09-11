@@ -12,6 +12,9 @@ from app.services.rag_service import RagService
 from app.services.workflow import RepairWorkflow
 
 
+settings.validate_security()
+
+
 def verify_internal_token(x_internal_token: str = Header(default="")) -> None:
     if settings.internal_token and x_internal_token != settings.internal_token:
         raise HTTPException(status_code=401, detail="invalid internal token")

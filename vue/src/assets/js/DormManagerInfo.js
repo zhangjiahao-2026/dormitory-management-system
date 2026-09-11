@@ -25,9 +25,9 @@ export default {
             }, 100);
         };
         const checkPass = (rule, value, callback) => {
-            if (!this.editJudge) {
+            if (this.judge === false || !this.editJudge) {
                 console.log("验证");
-                if (value == "") {
+                if (!value) {
                     callback(new Error("请再次输入密码"));
                 } else if (value !== this.form.password) {
                     callback(new Error("两次输入密码不一致!"));
@@ -38,6 +38,14 @@ export default {
                 console.log("不验证");
                 callback();
             }
+        };
+        const checkPassword = (rule, value, callback) => {
+            if (this.judge !== false && this.editJudge) return callback();
+            if (!value) return callback(new Error("请输入密码"));
+            if (value.length < 6 || value.length > 32) {
+                return callback(new Error("长度应为 6 到 32 个字符"));
+            }
+            callback();
         };
         return {
             showpassword: true,
@@ -93,13 +101,7 @@ export default {
                     {type: "email", message: "请输入正确的邮箱地址", trigger: "blur"},
                 ],
                 password: [
-                    {required: true, message: "请输入密码", trigger: "blur"},
-                    {
-                        min: 6,
-                        max: 32,
-                        message: "长度在 6 到 16 个字符",
-                        trigger: "blur",
-                    },
+                    {validator: checkPassword, trigger: "blur"},
                 ],
                 checkPass: [{validator: checkPass, trigger: "blur"}],
                 dormBuildId: [],

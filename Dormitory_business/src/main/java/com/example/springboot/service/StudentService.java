@@ -16,6 +16,8 @@ public interface StudentService extends IService<Student> {
     //查询学生
     Page find(Integer pageNum, Integer pageSize, String search);
 
+    Page findByDormBuild(Integer pageNum, Integer pageSize, String search, Integer dormBuildId);
+
     //更新学生信息
     int updateNewStudent(Student student);
 

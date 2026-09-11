@@ -16,6 +16,8 @@ public interface RepairService extends IService<Repair> {
     //查询
     Page find(Integer pageNum, Integer pageSize, String search);
 
+    Page findByDormBuild(Integer pageNum, Integer pageSize, String search, Integer dormBuildId);
+
     //查询
     Page individualFind(Integer pageNum, Integer pageSize, String search, String name);
 
@@ -24,4 +26,6 @@ public interface RepairService extends IService<Repair> {
 
     //删除订单
     int deleteOrder(Integer id);
+
+    int showOrderNumByDormBuild(Integer dormBuildId);
 }

@@ -14,8 +14,8 @@ public class LoginInterceptor implements HandlerInterceptor {
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             return true;
         }
-        HttpSession session = request.getSession();
-        Object user = session.getAttribute("User");
+        HttpSession session = request.getSession(false);
+        Object user = session == null ? null : session.getAttribute("User");
         if (user != null) {
             return true;
         }

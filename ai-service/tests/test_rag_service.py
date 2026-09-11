@@ -1,6 +1,8 @@
 from pathlib import Path
 
-from app.services.rag_service import RagService, hash_embedding, load_sop_chunks
+from dataclasses import replace
+
+from app.services.rag_service import RagService, hash_embedding, knowledge_fingerprint, load_sop_chunks
 
 
 KNOWLEDGE = Path(__file__).parents[1] / "knowledge"
@@ -36,3 +38,11 @@ def test_category_filter_excludes_unrelated_sop():
 
 def test_empty_query_has_no_results():
     assert RagService(KNOWLEDGE).search("", "OTHER") == []
+
+
+def test_knowledge_fingerprint_changes_when_content_changes_without_count_change():
+    chunks = load_sop_chunks(KNOWLEDGE)
+    changed = list(chunks)
+    changed[0] = replace(changed[0], content=changed[0].content + " 修订")
+    assert len(changed) == len(chunks)
+    assert knowledge_fingerprint(changed) != knowledge_fingerprint(chunks)

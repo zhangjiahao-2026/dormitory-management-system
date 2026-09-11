@@ -2,6 +2,7 @@ package com.example.springboot.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.springboot.common.PasswordUtil;
 import com.example.springboot.entity.Student;
 import com.example.springboot.mapper.StudentMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -162,6 +163,9 @@ class StudentServiceImplTest {
 
             Student student = new Student("S001", null, "张三（已更新）", 21, "男",
                     "13900001111", "newemail@qq.com", null);
+            Student stored = new Student("S001", PasswordUtil.encode("old-password"), "张三", 20, "男",
+                    "13800001111", "oldemail@qq.com", null);
+            when(mapper.selectById("S001")).thenReturn(stored);
             when(mapper.updateById(student)).thenReturn(1);
 
             int result = service.updateNewStudent(student);
@@ -231,8 +235,8 @@ class StudentServiceImplTest {
             StudentServiceImpl service = newService();
             StudentMapper mapper = mapper(service);
 
-            Student mockStudent = new Student("S001", null, "张三", 20, "男", null, null, null);
-            when(mapper.selectOne(any(QueryWrapper.class))).thenReturn(mockStudent);
+            Student mockStudent = new Student("S001", PasswordUtil.encode("123456"), "张三", 20, "男", null, null, null);
+            when(mapper.selectById("S001")).thenReturn(mockStudent);
 
             Student result = service.stuLogin("S001", "123456");
 
@@ -247,7 +251,8 @@ class StudentServiceImplTest {
             StudentServiceImpl service = newService();
             StudentMapper mapper = mapper(service);
 
-            when(mapper.selectOne(any(QueryWrapper.class))).thenReturn(null);
+            Student mockStudent = new Student("S001", PasswordUtil.encode("123456"), "张三", 20, "男", null, null, null);
+            when(mapper.selectById("S001")).thenReturn(mockStudent);
 
             Student result = service.stuLogin("S001", "wrongpassword");
 
@@ -260,7 +265,7 @@ class StudentServiceImplTest {
             StudentServiceImpl service = newService();
             StudentMapper mapper = mapper(service);
 
-            when(mapper.selectOne(any(QueryWrapper.class))).thenReturn(null);
+            when(mapper.selectById("NOTEXIST")).thenReturn(null);
 
             Student result = service.stuLogin("NOTEXIST", "123456");
 

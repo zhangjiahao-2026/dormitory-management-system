@@ -28,6 +28,10 @@ export default {
         };
     },
     computed: {
+        canViewManagementStats() {
+            const identity = JSON.parse(sessionStorage.getItem("identity") || '""');
+            return identity === "admin" || identity === "dormManager";
+        },
         canViewUtility() {
             const identity = JSON.parse(sessionStorage.getItem("identity") || '""');
             return identity === "admin" || identity === "dormManager";
@@ -37,11 +41,15 @@ export default {
             return identity === "admin" || identity === "dormManager";
         },
         stats() {
+            const sharedStats = [
+                { label: "住宿人数", value: this.haveRoomStudentNum || 0, icon: "house", tone: "blue" },
+                { label: "空宿舍", value: this.noFullRoomNum || 0, icon: "office-building", tone: "cyan" },
+            ];
+            if (!this.canViewManagementStats) return sharedStats;
             return [
                 { label: "学生统计", value: this.studentNum || 0, icon: "user", tone: "teal" },
-                { label: "住宿人数", value: this.haveRoomStudentNum || 0, icon: "house", tone: "blue" },
+                ...sharedStats,
                 { label: "报修统计", value: this.repairOrderNum || 0, icon: "set-up", tone: "green" },
-                { label: "空宿舍", value: this.noFullRoomNum || 0, icon: "office-building", tone: "cyan" },
                 { label: "晚归告警", value: this.accessAlerts.unhandledCount || 0, icon: "clock", tone: "danger", action: "goAccess" },
                 { label: "用电告警", value: this.utilityAlerts.unhandledCount || 0, icon: "warning", tone: "warning", action: "goUtility" },
             ];
@@ -49,12 +57,14 @@ export default {
     },
     created() {
         this.getHomePageNotice();
-        this.getStuNum();
         this.getHaveRoomNum();
-        this.getOrderNum();
         this.getNoFullRoom();
-        this.getUtilityAlerts();
-        this.getAccessAlerts();
+        if (this.canViewManagementStats) {
+            this.getStuNum();
+            this.getOrderNum();
+            this.getUtilityAlerts();
+            this.getAccessAlerts();
+        }
     },
     methods: {
         async getStuNum() {

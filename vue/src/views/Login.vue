@@ -28,7 +28,7 @@
 
         <el-form ref="form" :model="form" :rules="rules" size="large" class="form-fields">
           <el-form-item prop="username">
-            <el-input v-model="form.username" placeholder="用户名" clearable>
+            <el-input v-model="form.username" placeholder="用户名" clearable @input="loginError = ''">
               <template #prefix>
                 <el-icon><user/></el-icon>
               </template>
@@ -36,7 +36,7 @@
           </el-form-item>
 
           <el-form-item prop="password">
-            <el-input v-model="form.password" placeholder="密码" show-password>
+            <el-input v-model="form.password" placeholder="密码" show-password @input="loginError = ''">
               <template #prefix>
                 <el-icon><lock/></el-icon>
               </template>
@@ -48,7 +48,7 @@
               <div
                   class="role-chip"
                   :class="{ active: form.identity === 'stu' }"
-                  @click="form.identity = 'stu'"
+                  @click="selectRole('stu')"
               >
                 <el-icon :size="16"><user/></el-icon>
                 学生
@@ -56,7 +56,7 @@
               <div
                   class="role-chip"
                   :class="{ active: form.identity === 'dormManager' }"
-                  @click="form.identity = 'dormManager'"
+                  @click="selectRole('dormManager')"
               >
                 <el-icon :size="16"><avatar/></el-icon>
                 宿管
@@ -64,7 +64,7 @@
               <div
                   class="role-chip"
                   :class="{ active: form.identity === 'admin' }"
-                  @click="form.identity = 'admin'"
+                  @click="selectRole('admin')"
               >
                 <el-icon :size="16"><setting/></el-icon>
                 管理员
@@ -72,9 +72,15 @@
             </div>
           </el-form-item>
 
+          <p v-if="loginError" class="login-error" role="alert">
+            <el-icon><circle-close-filled/></el-icon>
+            <span>{{ loginError }}</span>
+          </p>
+
           <el-form-item>
             <el-button
                 :disabled="!disabled"
+                :loading="submitting"
                 type="primary"
                 class="login-btn"
                 @click="login"
@@ -269,5 +275,15 @@
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 3px;
+}
+
+.login-error {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 22px;
+  margin: -8px 2px 14px;
+  color: var(--el-color-danger);
+  font-size: 13px;
 }
 </style>

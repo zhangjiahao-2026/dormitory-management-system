@@ -1,6 +1,7 @@
 package com.example.springboot.controller;
 
 import com.example.springboot.common.Result;
+import com.example.springboot.common.SessionAuth;
 import com.example.springboot.entity.LargeItemRecord;
 import com.example.springboot.entity.StudentReturnRecord;
 import com.example.springboot.service.AccessService;
@@ -29,23 +30,27 @@ public class AccessController {
                              @RequestParam(defaultValue = "10") Integer pageSize,
                              @RequestParam(defaultValue = "") String search,
                              HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
         return Result.success(accessService.findReturnRecords(pageNum, pageSize, search, session));
     }
 
     @PostMapping("/returns")
     public Result<?> addReturn(@RequestBody StudentReturnRecord record, HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
         int i = accessService.addReturnRecord(record, session);
         return i == 1 ? Result.success() : Result.error("-1", "返寝登记失败");
     }
 
     @PutMapping("/returns/{id}")
     public Result<?> updateReturn(@PathVariable Integer id, @RequestBody StudentReturnRecord record, HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
         int i = accessService.updateReturnRecord(id, record, session);
         return i == 1 ? Result.success() : Result.error("-1", "返寝记录更新失败");
     }
 
     @DeleteMapping("/returns/{id}")
     public Result<?> deleteReturn(@PathVariable Integer id, HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
         int i = accessService.deleteReturnRecord(id, session);
         return i == 1 ? Result.success() : Result.error("-1", "返寝记录删除失败");
     }
@@ -54,16 +59,19 @@ public class AccessController {
     public Result<?> lateAlerts(@RequestParam(defaultValue = "1") Integer pageNum,
                                 @RequestParam(defaultValue = "10") Integer pageSize,
                                 HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
         return Result.success(accessService.findLateAlerts(pageNum, pageSize, session));
     }
 
     @GetMapping("/homeAlerts")
     public Result<?> homeAlerts(HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
         return Result.success(accessService.homeAlerts(session));
     }
 
     @PutMapping("/lateAlerts/{id}/handle")
     public Result<?> handleLateAlert(@PathVariable Integer id, HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
         int i = accessService.handleLateAlert(id, session);
         return i == 1 ? Result.success() : Result.error("-1", "晚归告警处理失败");
     }
@@ -73,23 +81,27 @@ public class AccessController {
                            @RequestParam(defaultValue = "10") Integer pageSize,
                            @RequestParam(defaultValue = "") String search,
                            HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
         return Result.success(accessService.findLargeItemRecords(pageNum, pageSize, search, session));
     }
 
     @PostMapping("/items")
     public Result<?> addItem(@RequestBody LargeItemRecord record, HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
         int i = accessService.addLargeItemRecord(record, session);
         return i == 1 ? Result.success() : Result.error("-1", "大件物品登记失败");
     }
 
     @PutMapping("/items/{id}")
     public Result<?> updateItem(@PathVariable Integer id, @RequestBody LargeItemRecord record, HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
         int i = accessService.updateLargeItemRecord(id, record, session);
         return i == 1 ? Result.success() : Result.error("-1", "大件物品更新失败");
     }
 
     @DeleteMapping("/items/{id}")
     public Result<?> deleteItem(@PathVariable Integer id, HttpSession session) {
+        SessionAuth.requireRole(session, "admin", "dormManager");
         int i = accessService.deleteLargeItemRecord(id, session);
         return i == 1 ? Result.success() : Result.error("-1", "大件物品删除失败");
     }

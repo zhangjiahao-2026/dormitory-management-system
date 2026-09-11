@@ -43,6 +43,14 @@ public class RepairServiceImpl extends ServiceImpl<RepairMapper, Repair> impleme
     }
 
     @Override
+    public Page findByDormBuild(Integer pageNum, Integer pageSize, String search, Integer dormBuildId) {
+        Page page = new Page<>(pageNum, pageSize);
+        QueryWrapper<Repair> qw = new QueryWrapper<>();
+        qw.like("title", search).eq("dormbuild_id", dormBuildId);
+        return repairMapper.selectPage(page, qw);
+    }
+
+    @Override
     public Page individualFind(Integer pageNum, Integer pageSize, String search, String name) {
         Page page = new Page<>(pageNum, pageSize);
         QueryWrapper<Repair> qw = new QueryWrapper<>();
@@ -80,5 +88,12 @@ public class RepairServiceImpl extends ServiceImpl<RepairMapper, Repair> impleme
         QueryWrapper<Repair> qw = new QueryWrapper<>();
         int orderCount = Math.toIntExact(repairMapper.selectCount(qw));
         return orderCount;
+    }
+
+    @Override
+    public int showOrderNumByDormBuild(Integer dormBuildId) {
+        QueryWrapper<Repair> qw = new QueryWrapper<>();
+        qw.eq("dormbuild_id", dormBuildId);
+        return Math.toIntExact(repairMapper.selectCount(qw));
     }
 }

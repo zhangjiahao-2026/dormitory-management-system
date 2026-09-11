@@ -2,6 +2,7 @@ package com.example.springboot.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.springboot.common.PasswordUtil;
 import com.example.springboot.entity.DormManager;
 import com.example.springboot.mapper.DormManagerMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -160,6 +161,9 @@ class DormManagerServiceImplTest {
 
             DormManager manager = new DormManager("M001", null, 1, "刘管理员（已调岗）",
                     "男", 36, "13900009999", "liu_new@qq.com", null);
+            DormManager stored = new DormManager("M001", PasswordUtil.encode("old-password"), 1, "刘管理员",
+                    "男", 35, "13800009999", "liu@qq.com", null);
+            when(mapper.selectById("M001")).thenReturn(stored);
             when(mapper.updateById(manager)).thenReturn(1);
 
             int result = service.updateNewDormManager(manager);
@@ -189,6 +193,9 @@ class DormManagerServiceImplTest {
             DormManagerMapper mapper = mapper(service);
 
             DormManager manager = new DormManager("M001", null, 4, "刘管理员", "男", 35, null, null, null);
+            DormManager stored = new DormManager("M001", PasswordUtil.encode("old-password"), 1, "刘管理员",
+                    "男", 35, null, null, null);
+            when(mapper.selectById("M001")).thenReturn(stored);
             when(mapper.updateById(manager)).thenReturn(1);
 
             service.updateNewDormManager(manager);
@@ -246,9 +253,9 @@ class DormManagerServiceImplTest {
             DormManagerServiceImpl service = newService();
             DormManagerMapper mapper = mapper(service);
 
-            DormManager mockManager = new DormManager("M001", null, 1, "刘管理员",
+            DormManager mockManager = new DormManager("M001", PasswordUtil.encode("123456"), 1, "刘管理员",
                     "男", 35, null, null, null);
-            when(mapper.selectOne(any(QueryWrapper.class))).thenReturn(mockManager);
+            when(mapper.selectById("M001")).thenReturn(mockManager);
 
             DormManager result = service.dormManagerLogin("M001", "123456");
 
@@ -263,7 +270,9 @@ class DormManagerServiceImplTest {
             DormManagerServiceImpl service = newService();
             DormManagerMapper mapper = mapper(service);
 
-            when(mapper.selectOne(any(QueryWrapper.class))).thenReturn(null);
+            DormManager mockManager = new DormManager("M001", PasswordUtil.encode("123456"), 1, "刘管理员",
+                    "男", 35, null, null, null);
+            when(mapper.selectById("M001")).thenReturn(mockManager);
 
             DormManager result = service.dormManagerLogin("M001", "wrongpassword");
 
@@ -276,7 +285,7 @@ class DormManagerServiceImplTest {
             DormManagerServiceImpl service = newService();
             DormManagerMapper mapper = mapper(service);
 
-            when(mapper.selectOne(any(QueryWrapper.class))).thenReturn(null);
+            when(mapper.selectById("NOTEXIST")).thenReturn(null);
 
             DormManager result = service.dormManagerLogin("NOTEXIST", "123456");
 
